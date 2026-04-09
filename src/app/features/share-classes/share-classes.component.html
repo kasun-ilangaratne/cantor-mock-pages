@@ -1,0 +1,935 @@
+<div class="share-classes-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <div class="logo">Cantor</div>
+    </div>
+    <div class="header-right">
+      <div class="header-info">
+        <span class="company">{{ company }}</span>
+        <select class="year-select" [(ngModel)]="year">
+          <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+        </select>
+        <select class="month-select" [(ngModel)]="month">
+          <option *ngFor="let m of months; let i = index" [value]="m">{{ monthNames[i] }}</option>
+        </select>
+        <!-- Demo Mode Toggle -->
+        <button 
+          type="button" 
+          class="demo-toggle-btn"
+          (click)="toggleDemoMode()"
+          [title]="demoMode === 'single' ? 'Switch to Multiple Share Classes' : 'Switch to Single Share Class'">
+          Demo: {{ demoMode === 'single' ? 'Single' : 'Multiple' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Tabs -->
+  <div class="main-tabs">
+    <div class="tab" [class.active]="isShareClassesRoute()" (click)="navigateToShareClasses()">Selskap</div>
+    <div class="tab" [class.active]="isShareholdersRoute()" (click)="navigateToShareholders()">Aksjonærer</div>
+    <div class="tab">Reelle rettighetshavere</div>
+  </div>
+
+  <!-- Sub Tabs -->
+  <div class="sub-tabs">
+    <button type="button" class="sub-tab" [class.active]="activeSubTab === 'aksjeklasser'" (click)="openShareClassesSelectionDialog()">Aksjeklasser</button>
+    <button type="button" class="sub-tab" [class.active]="activeSubTab === 'transaksjoner'" (click)="setActiveSubTab('transaksjoner')">Transaksjoner</button>
+    <button type="button" class="sub-tab" [class.active]="activeSubTab === 'send'">Send aksjonærregisteroppgave</button>
+  </div>
+
+  <!-- Company Transactions View -->
+  <div class="company-transactions-view" *ngIf="activeSubTab === 'transaksjoner'">
+    <div class="transactions-header">
+      <h2 class="page-title">Transaksjoner - {{ company }}</h2>
+    </div>
+    
+    <div class="transactions-container" [class.with-detail]="isTransactionDetailPanelOpen()">
+      <!-- Left Panel: Transactions Table -->
+      <div class="transactions-left-panel">
+        <div class="section-header">
+          <button type="button" class="add-btn" (click)="openTransactionDetailPanel()">
+            <mat-icon>add</mat-icon>
+            Legg til
+          </button>
+        </div>
+        
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Transaksjon</th>
+              <th *ngIf="hasExpandedTransactionGroups()">Transaksjonstype</th>
+              <th *ngIf="hasExpandedTransactionGroups()">Tidspunkt</th>
+              <th class="actions-col" *ngIf="hasExpandedTransactionGroups()">Handlinger</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let group of getCompanyTransactionGroups()">
+              <tr *ngIf="group.transactions.length > 1"
+                  [class.group-header]="true" 
+                  [class.expanded]="isTransactionGroupExpanded(group.postingTypeId)">
+                <td>
+                  <button type="button" class="expand-btn" (click)="toggleTransactionGroup(group.postingTypeId)">
+                    <mat-icon>{{ isTransactionGroupExpanded(group.postingTypeId) ? 'remove' : 'add' }}</mat-icon>
+                  </button>
+                </td>
+                <td><strong>{{ group.postingTypeDescription }}</strong></td>
+                <td *ngIf="hasExpandedTransactionGroups()"></td>
+                <td *ngIf="hasExpandedTransactionGroups()"></td>
+                <td class="actions-col" *ngIf="hasExpandedTransactionGroups()"></td>
+              </tr>
+              <ng-container *ngIf="isTransactionGroupExpanded(group.postingTypeId) || group.transactions.length === 1">
+                <tr *ngFor="let transaction of group.transactions" 
+                    [class.editing]="transaction.isEditing"
+                    [class.group-item]="group.transactions.length > 1"
+                    [class.selected]="editingTransactionId === transaction.id"
+                    (click)="selectCompanyTransaction(transaction, $event)">
+                  <td></td>
+                  <td>{{ group.postingTypeDescription }}</td>
+                  <td *ngIf="hasExpandedTransactionGroups()">
+                    <select *ngIf="transaction.isEditing" class="table-input" [(ngModel)]="transaction.hendelsestype">
+                      <option value="">Velg hendelsestype</option>
+                      <option value="Stiftelse">Stiftelse</option>
+                      <option value="Nyemisjon">Nyemisjon</option>
+                      <option value="Fondsemisjon">Fondsemisjon</option>
+                      <option value="Fisjon">Fisjon</option>
+                      <option value="Fusjon">Fusjon</option>
+                      <option value="Omfordeling">Omfordeling</option>
+                      <option value="Sletting">Sletting</option>
+                      <option value="Likvidasjon">Likvidasjon</option>
+                      <option value="Partiell likvidasjon">Partiell likvidasjon</option>
+                      <option value="Skattepliktig fusjon/fisjon">Skattepliktig fusjon/fisjon</option>
+                      <option value="Skattepliktig innløsning ifm. skattefri fusjon/fisjon">Skattepliktig innløsning ifm. skattefri fusjon/fisjon</option>
+                      <option value="Sletting av egne aksjer til dekning av tap og avsetning til fond">Sletting av egne aksjer til dekning av tap og avsetning til fond</option>
+                      <option value="Spleis">Spleis</option>
+                      <option value="Skattefri fusjon/fisjon">Skattefri fusjon/fisjon</option>
+                      <option value="Sammenslåing/deling av aksjeklasse">Sammenslåing/deling av aksjeklasse</option>
+                      <option value="Skattefri utfisjonering (omfordeling)">Skattefri utfisjonering (omfordeling)</option>
+                    </select>
+                    <span *ngIf="!transaction.isEditing">{{ transaction.hendelsestype || transaction.transaksjonstype || '-' }}</span>
+                  </td>
+                  <td *ngIf="hasExpandedTransactionGroups()">
+                    <input *ngIf="transaction.isEditing" type="datetime-local" class="table-input" [(ngModel)]="transaction.tidspunkt">
+                    <span *ngIf="!transaction.isEditing">{{ formatDateTime(transaction.tidspunkt) }}</span>
+                  </td>
+                  <td class="actions-col" *ngIf="hasExpandedTransactionGroups()">
+                    <button *ngIf="!transaction.isEditing" type="button" class="icon-btn" (click)="editCompanyTransaction(transaction)" title="Rediger">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button *ngIf="transaction.isEditing" type="button" class="icon-btn save-btn" (click)="saveCompanyTransaction(transaction)" title="Lagre">
+                      <mat-icon>check</mat-icon>
+                    </button>
+                    <button *ngIf="transaction.isEditing" type="button" class="icon-btn cancel-btn" (click)="cancelEditCompanyTransaction(transaction)" title="Avbryt">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                    <button *ngIf="!transaction.isEditing" type="button" class="icon-btn" (click)="deleteCompanyTransaction(transaction)" title="Slett">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              </ng-container>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Right Panel: Transaction Detail Form -->
+      <div class="transactions-right-panel" *ngIf="isTransactionDetailPanelOpen()">
+        <div class="detail-panel">
+          <div class="detail-header">
+            <h4>
+              <span *ngIf="!editingTransactionId && selectedPostingType">Post {{ selectedPostingType }}: {{ getSelectedCompanyPostingTypeName() }}</span>
+              <span *ngIf="!editingTransactionId && !selectedPostingType">Ny transaksjon</span>
+              <span *ngIf="editingTransactionId && selectedPostingType">Post {{ selectedPostingType }}: {{ getSelectedCompanyPostingTypeName() }}</span>
+              <span *ngIf="editingTransactionId && !selectedPostingType">Rediger transaksjon</span>
+            </h4>
+            <button type="button" class="close-btn" (click)="closeTransactionDetailPanel()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+
+          <div class="detail-content">
+            <div class="field-group" *ngIf="!editingTransactionId">
+              <label>Post type</label>
+              <select class="field-input" [(ngModel)]="selectedPostingType" (ngModelChange)="selectCompanyPostingType($event)">
+                <option [value]="null">Velg post type</option>
+                <option *ngFor="let postingType of companyPostingTypes" [value]="postingType.id">
+                  Post {{ postingType.id }}: {{ postingType.shortName }}
+                </option>
+              </select>
+            </div>
+            
+            <div class="field-group" *ngIf="editingTransactionId && selectedPostingType">
+              <label>Post type</label>
+              <input type="text" class="field-input" [value]="'Post ' + selectedPostingType + ': ' + getSelectedCompanyPostingTypeName()" readonly>
+            </div>
+
+            <div *ngIf="selectedPostingType" class="posting-form">
+              <!-- Post 9: Nyutstedte aksjer -->
+              <div *ngIf="selectedPostingType === '9'">
+                <div class="form-description">
+                  <p>Se post 23 for tilsvarende opplysninger på aksjonærnivå</p>
+                </div>
+                <div class="field-group">
+                  <label>Hendelsestype</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.hendelsestype">
+                    <option value="">Velg hendelsestype</option>
+                    <option value="Stiftelse">Stiftelse</option>
+                    <option value="Nyemisjon">Nyemisjon</option>
+                    <option value="Nyemisjon ved konvertering av fordring">Nyemisjon ved konvertering av fordring</option>
+                    <option value="Nyemisjon ved konsernintern overføring">Nyemisjon ved konsernintern overføring</option>
+                    <option value="Skattepliktig fusjon/fisjon">Skattepliktig fusjon/fisjon</option>
+                    <option value="Omdannelse til aksjeselskap">Omdannelse til aksjeselskap</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Antall nyutstedte aksjer</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antallNyutstedteAksjer" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Pålydende per aksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyendePerAksje" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Innbetalt overkurs per aksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.innbetaltOverkursPerAksje" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Antall aksjer etter</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antallAksjerEtter" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Antall egne aksjer overført</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antallEgneAksjerOverfort" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+              </div>
+
+              <!-- Post 10: Ny utstedte aksjer (omfordeling) -->
+              <div *ngIf="selectedPostingType === '10'">
+                <div class="form-description">
+                  <p>Se post 24 for tilsvarende opplysninger på aksjonærnivå</p>
+                </div>
+                <div class="field-group">
+                  <label>Hendelsestype</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.hendelsestype">
+                    <option value="">Velg hendelsestype</option>
+                    <option value="Fondsemisjon">Fondsemisjon</option>
+                    <option value="Splitt">Splitt</option>
+                    <option value="Skattefri fusjon/fisjon">Skattefri fusjon/fisjon</option>
+                    <option value="Sammenslåing/deling av aksjeklasse">Sammenslåing/deling av aksjeklasse</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Antall nyutstedte aksjer</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antallNyutstedteAksjer" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Pålydende per utstedt aksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyendePerUtstedtAksje" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Antall egne aksjer overført</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antallEgneAksjerOverfort" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Antall aksjer etter</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antallAksjerEtter" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Pålydende per innløst aksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyendePerInnlostAksje" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Overd. selskaps org. nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.overdSelskapsOrgNr">
+                </div>
+                <div class="field-group">
+                  <label>ISIN/Aksjeklasse</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.isinAksjeklasse">
+                </div>
+                <div class="field-group">
+                  <label>Antall innløste aksjer</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antallInnlosteAksjer" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Overt. selskaps org. nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.overtSelskapsOrgNr">
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+              </div>
+
+              <!-- Post 11: Sletting av aksjer (avgang) -->
+              <div *ngIf="selectedPostingType === '11'">
+                <div class="form-description">
+                  <p>Se post 25 for tilsvarende opplysninger på aksjonærnivå</p>
+                </div>
+                <div class="field-group">
+                  <label>Hendelsestype</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.hendelsestype">
+                    <option value="">Velg hendelsestype</option>
+                    <option value="Likvidasjon">Likvidasjon</option>
+                    <option value="Partiell likvidasjon">Partiell likvidasjon</option>
+                    <option value="Skattepliktig fusjon/fisjon">Skattepliktig fusjon/fisjon</option>
+                    <option value="Skattepliktig innløsning ifm. skattefri fusjon/fisjon">Skattepliktig innløsning ifm. skattefri fusjon/fisjon</option>
+                    <option value="Sletting av egne aksjer til dekning av tap og avsetning til fond">Sletting av egne aksjer til dekning av tap og avsetning til fond</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Pålydende per aksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyendePerAksje" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Antall slettede aksjer</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antallSlettedeAksjer" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Gjennomsnittlig innbetalt overkurs per slettet aksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.gjennomsnittligInnbetaltOverkursPerSlettetAksje" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Antall aksjer etter</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antallAksjerEtter" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Totalt vederlag/ Utbetalt av innbetalt kapital</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.totaltVederlagUtbetaltAvInnbetaltKapital" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+              </div>
+
+              <!-- Post 12: Sletting av aksjer (omfordeling) -->
+              <div *ngIf="selectedPostingType === '12'">
+                <div class="form-description">
+                  <p>Se post 26 for tilsvarende opplysninger på aksjonærnivå</p>
+                </div>
+                <div class="field-group">
+                  <label>Hendelsestype</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.hendelsestype">
+                    <option value="">Velg hendelsestype</option>
+                    <option value="Spleis">Spleis</option>
+                    <option value="Skattefri fusjon/fisjon">Skattefri fusjon/fisjon</option>
+                    <option value="Sammenslåing/deling av aksjeklasse">Sammenslåing/deling av aksjeklasse</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Pålydende per aksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyendePerAksje" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Pålydende per aksje etter spleis</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyendePerAksjeEtterSpleis" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Antall slettede aksjer</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antallSlettedeAksjer" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Antall aksjer etter</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antallAksjerEtter" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Overt. selskaps org. nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.overtSelskapsOrgNr">
+                </div>
+                <div class="field-group">
+                  <label>ISIN/Aksjeklasse</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.isinAksjeklasse">
+                </div>
+                <div class="field-group">
+                  <label>Vederlagsaksjer (antall)</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.vederlagsaksjerAntall" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Pålydende per vederlagsaksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyendePerVederlagsaksje" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Overt. morselskaps org. nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.overtMorselskapsOrgNr">
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+              </div>
+
+              <!-- Post 13: Tilbakebetalt overkurs -->
+              <div *ngIf="selectedPostingType === '13'">
+                <div class="form-description">
+                  <p>Nedsettelse av innbetalt overkurs med tilbakebetaling til aksjonærene i løpet av inntektsåret (se post 28)</p>
+                </div>
+                <div class="field-group">
+                  <label>Nedsettelse av innb. overkurs</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.nedsettelseAvInnbOverkurs" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+              </div>
+
+              <!-- Post 14: Forhøyelse av aksjekapital ved økning av pålydende per aksje if m fondsemisjon -->
+              <div *ngIf="selectedPostingType === '14'">
+                <div class="field-group">
+                  <label>Forhøyelse av aksjekapital</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.forhoyelseAvAksjekapital" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Økning pål. per aksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.okningPalyendePerAksje" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Pålydende per aksje etter</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyendePerAksjeEtter" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+              </div>
+
+              <!-- Post 15: Forhøyelse av aksjekapital/overkurs -->
+              <div *ngIf="selectedPostingType === '15'">
+                <div class="form-description">
+                  <p>Forhøyelse av aksjekapital og overkurs ved økning av pålydende ved nyemisjon, fisjon og fusjon (Se post 29)</p>
+                </div>
+                <div class="field-group">
+                  <label>Hendelsestype</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.hendelsestype">
+                    <option value="">Velg hendelsestype</option>
+                    <option value="Nyemisjon">Nyemisjon</option>
+                    <option value="Fisjon">Fisjon</option>
+                    <option value="Fusjon">Fusjon</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Forhøyelse av aksjekapital</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.forhoyelseAvAksjekapital" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Økning pålydende per aksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.okningPalyendePerAksje" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Pålydende per aksje etter</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyendePerAksjeEtter" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Forhøyelse av overkurs</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.forhoyelseAvOverkurs" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Overd. selskaps org.nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.overdSelskapsOrgNr">
+                </div>
+                <div class="field-group">
+                  <label>ISIN/Aksjeklasse</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.isinAksjeklasse">
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+              </div>
+
+              <!-- Post 16: Nedsettelse av aksjekapital ved reduksjon av pålydende per aksje til dekning av tap og overføring til fond -->
+              <div *ngIf="selectedPostingType === '16'">
+                <div class="field-group">
+                  <label>Nedsettelse innb. aksjekapital</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.nedsettelseInnbAksjekapital" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Nedsettelse f.em. aksjekap.</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.nedsettelseFemAksjekap" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Reduksjon pål. per aksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.reduksjonPalyendePerAksje" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Pålydende per aksje etter</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyendePerAksjeEtter" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+              </div>
+
+              <!-- Post 17: Tilbakebetalt innbetalt aksjekapital -->
+              <div *ngIf="selectedPostingType === '17'">
+                <div class="field-group">
+                  <label>Nedsettelse av aksjekapital</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.nedsettelseAvAksjekapital" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Tilbakebetalt innbetalt aksjekapital</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.tilbakebetaltInnbetaltAksjekapital" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Reduksjon pålydende per aksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.reduksjonPalyendePerAksje" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Pålydende per aksje etter</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyendePerAksjeEtter" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+              </div>
+
+              <!-- Post 18: Nedsettelse av aksjekapital ved reduksjon av pålydende per aksje ved skattefri utfisjonering (omfordeling) -->
+              <div *ngIf="selectedPostingType === '18'">
+                <div class="field-group">
+                  <label>Hendelsestype</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.hendelsestype">
+                    <option value="">Velg hendelsestype</option>
+                    <option value="Skattefri utfisjonering (omfordeling)">Skattefri utfisjonering (omfordeling)</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Nedsettelse av aksjekapital</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.nedsettelseAvAksjekapital" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Reduksjon pål. per aksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.reduksjonPalyendePerAksje" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Pålydende per aksje etter</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyendePerAksjeEtter" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Overt. selskaps org. nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.overtSelskapsOrgNr">
+                </div>
+                <div class="field-group">
+                  <label>ISIN/Aksjeklasse</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.isinAksjeklasse">
+                </div>
+                <div class="field-group">
+                  <label>Vederlagsaksjer (antall)</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.vederlagsaksjerAntall" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Pålydende per vederlagsaksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyendePerVederlagsaksje" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Overt. morselskaps org. nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.overtMorselskapsOrgNr">
+                </div>
+                <div class="field-group">
+                  <label>ISIN/Aksjeklasse (morselskap)</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.isinAksjeklasseMorselskap">
+                </div>
+                <div class="field-group">
+                  <label>Vederlagsaksjer (antall) (morselskap)</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.vederlagsaksjerAntallMorselskap" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Pålydende per vederlagsaksje (morselskap)</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyendePerVederlagsaksjeMorselskap" min="0" step="0.01">
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-footer-actions">
+              <button type="button" class="cancel-btn" (click)="closeTransactionDetailPanel()">Avbryt</button>
+              <button type="button" class="save-btn" (click)="saveNewCompanyTransaction()">Lagre</button>
+              <button type="button" class="save-next-btn" (click)="saveAndNextCompanyTransaction()">Lagre og neste</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <button type="button" (click)="saveCompanyTransactions()" class="save-btn">Lagre</button>
+    </div>
+  </div>
+
+  <!-- Main Content - Split Screen Layout -->
+  <div class="main-content" 
+       *ngIf="activeSubTab !== 'transaksjoner'"
+       [class.with-detail]="selectedShareClass !== null || isAddMode" 
+       [class.single-share-class]="hasSingleShareClass"
+       [style.display]="'flex'">
+    <!-- Left Panel - Only show when multiple share classes -->
+    <div class="left-panel" *ngIf="shouldShowTable">
+      <!-- Primary Action -->
+      <div class="primary-action">
+        <button type="button" class="add-btn" (click)="openAddShareClassDialog()">
+          <mat-icon>add</mat-icon>
+          Legg til
+        </button>
+      </div>
+
+      <!-- Share Classes Table -->
+      <div class="table-section">
+        <table class="share-classes-table">
+          <thead>
+            <tr>
+              <th class="navn-col">Aksjeklasse</th>
+              <th class="value-col">Antall aksjer</th>
+              <th class="value-col">Pålydende</th>
+              <th class="value-col">Aksjekapital</th>
+              <th class="value-col">Innbetalt overkurs</th>
+              <th class="value-col">Formuesverdi per aksje</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr 
+              *ngFor="let shareClass of shareClasses"
+              [class.selected]="selectedShareClass?.id === shareClass.id"
+              (click)="selectShareClass(shareClass)">
+              <td class="navn-col">{{ shareClass.navn }}</td>
+              <td class="value-col">{{ formatNumber(shareClass.antallAksjer) }}</td>
+              <td class="value-col">{{ formatNumber(shareClass['pålydende']) }}</td>
+              <td class="value-col">{{ formatNumber(shareClass.aksjekapital) }}</td>
+              <td class="value-col">{{ formatNumber(shareClass['innbetaltOverkurs']) }}</td>
+              <td class="value-col">{{ formatDecimal(shareClass['formuesverdiPerAksje']) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Alle aksjeklasser Section - Only show in left panel when multiple share classes -->
+      <div class="aggregate-section" *ngIf="shouldShowTable">
+        <div class="section-header">
+          <h3>Alle aksjeklasser</h3>
+        </div>
+        
+        <div class="aggregate-fields">
+          <div class="field-group">
+            <label>Antall egne aksjer i utgående balanse</label>
+            <input 
+              type="number"
+              [ngModel]="aggregateFields['antallEgneAksjerUtgåendeBalanse']"
+              (ngModelChange)="aggregateFields['antallEgneAksjerUtgåendeBalanse'] = $event; onFieldChange()"
+              min="0"
+              class="field-input">
+          </div>
+
+          <div class="field-group">
+            <label>Totalt utbytte avsatt</label>
+            <input 
+              type="number"
+              [(ngModel)]="aggregateFields.totaltUtbytteAvsatt"
+              (ngModelChange)="onFieldChange()"
+              min="0"
+              class="field-input">
+          </div>
+
+          <div class="field-group">
+            <label>RISK-beløp per aksje</label>
+            <div class="risk-field-container">
+              <input 
+                type="text"
+                [value]="formatDecimal(aggregateRiskPerShare)"
+                readonly
+                class="field-input readonly">
+              <button 
+                type="button"
+                class="details-btn"
+                (click)="openRiskDetailsDialog()">
+                Detaljer
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Button -->
+      <div class="footer-actions" *ngIf="shouldShowTable">
+        <button type="button" (click)="save()" class="save-btn">
+          Lagre
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Panel: Detail Section - Selected Share Class -->
+    <!-- Show when selected OR when there's only one share class -->
+    <div class="right-panel" *ngIf="selectedShareClass !== null || isAddMode || hasSingleShareClass">
+      <!-- Add button for single share class scenario -->
+      <div class="primary-action" *ngIf="hasSingleShareClass && !isAddMode">
+        <button type="button" class="add-btn" (click)="openAddShareClassDialog()">
+          <mat-icon>add</mat-icon>
+          Legg til
+        </button>
+      </div>
+
+      <div class="detail-header">
+        <h2 class="detail-title">{{ isAddMode ? 'Legg til aksjeklasse' : 'Aksjeklasse: ' + selectedShareClass!.navn }}</h2>
+        <!-- Hide close button when single share class -->
+        <button 
+          type="button" 
+          class="close-btn"
+          *ngIf="!hasSingleShareClass"
+          (click)="closeDetailPanel()"
+          aria-label="Close detail panel">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="detail-content">
+        <!-- Left Column: Utgående balanse (Outgoing Balance) -->
+        <div class="detail-left">
+          <h3>Utgående balanse</h3>
+          
+          <!-- Share Class Selection Dropdown (only in add mode) -->
+          <div class="field-group" *ngIf="isAddMode">
+            <label>Aksjeklasse</label>
+            <select 
+              class="field-input"
+              [(ngModel)]="selectedShareClassName"
+              (ngModelChange)="onShareClassNameSelected()">
+              <option value="">Velg aksjeklasse</option>
+              <option *ngFor="let className of getAvailableShareClassesForDropdown()" [value]="className">
+                {{ className }}
+              </option>
+            </select>
+          </div>
+          
+          <div class="field-group">
+            <label>Antall aksjer</label>
+            <input 
+              type="number"
+              [(ngModel)]="selectedShareClass!.antallAksjer"
+              (input)="onFieldChange()"
+              min="0"
+              class="field-input">
+          </div>
+
+          <div class="field-group">
+            <label>Pålydende</label>
+            <input 
+              type="number"
+              [ngModel]="selectedShareClass!['pålydende']"
+              (ngModelChange)="selectedShareClass!['pålydende'] = $event; onFieldChange()"
+              (input)="onFieldChange()"
+              min="0"
+              step="0.01"
+              class="field-input">
+          </div>
+
+          <div class="field-group">
+            <label>Aksjekapital</label>
+            <input 
+              type="text"
+              [value]="formatCalculatedField(selectedShareClass!['aksjekapital'])"
+              readonly
+              class="field-input readonly">
+            <span class="field-note">(Antall aksjer × Pålydende)</span>
+          </div>
+
+          <div class="field-group">
+            <label>Innbetalt overkurs</label>
+            <input 
+              type="number"
+              [ngModel]="selectedShareClass!['innbetaltOverkurs']"
+              (ngModelChange)="selectedShareClass!['innbetaltOverkurs'] = $event; onFieldChange()"
+              (input)="onFieldChange()"
+              min="0"
+              class="field-input">
+          </div>
+
+          <div class="field-group">
+            <label>Innbetalt aksjekapital (inkl. overkurs)</label>
+            <input 
+              type="text"
+              [value]="formatCalculatedField(selectedShareClass!['innbetaltAksjekapital'])"
+              readonly
+              class="field-input readonly">
+            <span class="field-note">(Aksjekapital + Innbetalt overkurs)</span>
+          </div>
+
+          <div class="field-group">
+            <label>Formuesverdi per aksje</label>
+            <input 
+              type="number"
+              [ngModel]="selectedShareClass!['formuesverdiPerAksje']"
+              (ngModelChange)="selectedShareClass!['formuesverdiPerAksje'] = $event; onFieldChange()"
+              (input)="onFieldChange()"
+              min="0"
+              step="0.01"
+              class="field-input">
+          </div>
+        </div>
+
+        <!-- Right Column: Inngående balanse (Incoming Balance) -->
+        <div class="detail-right">
+          <h3>Inngående balanse</h3>
+          <div class="field-group">
+            <label>Antall aksjer</label>
+            <input 
+              type="text"
+              [value]="formatNumber(incomingBalanceShares)"
+              readonly
+              class="field-input readonly">
+          </div>
+
+          <div class="field-group">
+            <label>Pålydende</label>
+            <input 
+              type="text"
+              [value]="formatNumber(incomingBalanceParValue)"
+              readonly
+              class="field-input readonly">
+          </div>
+
+          <div class="field-group">
+            <label>Aksjekapital</label>
+            <input 
+              type="text"
+              [value]="formatNumber(incomingBalanceCapital)"
+              readonly
+              class="field-input readonly">
+          </div>
+
+          <div class="field-group">
+            <label>Innbetalt overkurs</label>
+            <input 
+              type="text"
+              [value]="formatNumber(incomingBalancePremium)"
+              readonly
+              class="field-input readonly">
+          </div>
+
+          <div class="field-group">
+            <label>Innbetalt aksjekapital (inkl. overkurs)</label>
+            <input 
+              type="text"
+              [value]="formatNumber(incomingBalanceTotalCapital)"
+              readonly
+              class="field-input readonly">
+          </div>
+
+          <div class="field-group">
+            <label>Formuesverdi per aksje</label>
+            <input 
+              type="text"
+              [value]="formatDecimal(incomingBalanceFormuesverdiPerAksje)"
+              readonly
+              class="field-input readonly">
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Section: Additional Fields -->
+      <div class="detail-bottom-section">
+        <div class="field-group">
+          <label>Totalt utbytte utdelt</label>
+          <div class="field-with-button">
+            <input 
+              type="text"
+              [value]="formatNumber(selectedShareClass!['totaltUtbytteUtdelt'])"
+              readonly
+              class="field-input readonly">
+            <button type="button" class="details-btn" (click)="openDividendDetailsDialog()">
+              Detaljer
+            </button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Utbytte utdelt per aksje</label>
+          <input 
+            type="text"
+            [value]="formatCalculatedDecimal(selectedShareClass!['utbytteUtdeltPerAksje'])"
+            readonly
+            class="field-input readonly">
+          <span class="field-note">(Totalt utbytte utdelt / Antall aksjer)</span>
+        </div>
+
+        <div class="field-group">
+          <label>ISDN</label>
+          <input 
+            type="text"
+            [(ngModel)]="selectedShareClass!.isdn"
+            (input)="onFieldChange()"
+            class="field-input">
+        </div>
+      </div>
+
+      <!-- Alle aksjeklasser Section - Show in detail panel when single share class -->
+      <div class="aggregate-section" *ngIf="hasSingleShareClass">
+        <div class="section-header">
+          <h3>Alle aksjeklasser</h3>
+        </div>
+        
+        <div class="aggregate-fields">
+          <div class="field-group">
+            <label>Antall egne aksjer i utgående balanse</label>
+            <input 
+              type="number"
+              [ngModel]="aggregateFields['antallEgneAksjerUtgåendeBalanse']"
+              (ngModelChange)="aggregateFields['antallEgneAksjerUtgåendeBalanse'] = $event; onFieldChange()"
+              min="0"
+              class="field-input">
+          </div>
+
+          <div class="field-group">
+            <label>Totalt utbytte avsatt</label>
+            <input 
+              type="number"
+              [(ngModel)]="aggregateFields.totaltUtbytteAvsatt"
+              (ngModelChange)="onFieldChange()"
+              min="0"
+              class="field-input">
+          </div>
+
+          <div class="field-group">
+            <label>RISK-beløp per aksje</label>
+            <div class="risk-field-container">
+              <input 
+                type="text"
+                [value]="formatDecimal(aggregateRiskPerShare)"
+                readonly
+                class="field-input readonly">
+              <button 
+                type="button"
+                class="details-btn"
+                (click)="openRiskDetailsDialog()">
+                Detaljer
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Footer Actions -->
+      <div class="detail-footer-actions">
+        <button type="button" (click)="closeDetailPanel()" class="cancel-btn" *ngIf="!hasSingleShareClass">
+          Avbryt
+        </button>
+        <button type="button" (click)="saveDetailChanges()" class="save-detail-btn" *ngIf="!hasSingleShareClass">
+          Lagre
+        </button>
+        <!-- Show main save button when single share class -->
+        <button type="button" (click)="save()" class="save-detail-btn" *ngIf="hasSingleShareClass">
+          Lagre
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

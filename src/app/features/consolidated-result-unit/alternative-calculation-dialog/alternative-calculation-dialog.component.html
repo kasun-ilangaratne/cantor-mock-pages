@@ -1,0 +1,103 @@
+<div class="eliminations-dialog">
+  <div class="dialog-header">
+    <h2>Alternative Calculation</h2>
+  </div>
+  <div class="dialog-content">
+    <form [formGroup]="form" class="alternative-calc-form">
+      <div class="intervals-section">
+        <table class="eliminations-table">
+          <thead>
+            <tr>
+              <th>Interval</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Account</th>
+              <th>Options</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Result</td>
+              <td><input type="number" formControlName="resultFrom" class="form-input no-padding" /></td>
+              <td><input type="number" formControlName="resultTo" class="form-input no-padding" /></td>
+              <td>
+                <app-account-dropdown
+                  [selectedValue]="form.get('resultAccount')?.value"
+                  (accountSelected)="onAccountSelected('resultAccount', $event)"
+                  placeholder="Select Account">
+                </app-account-dropdown>
+              </td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Investment</td>
+              <td colspan="2"></td>
+              <td>
+                <app-account-dropdown
+                  [selectedValue]="form.get('investmentAccount')?.value"
+                  (accountSelected)="onAccountSelected('investmentAccount', $event)"
+                  placeholder="Select Account">
+                </app-account-dropdown>
+              </td>
+              <td>
+                <label class="form-checkbox-label">
+                  <input type="checkbox" formControlName="alternativeCalculation" class="form-checkbox" />
+                  Alternative calculation (Alternativ beregning)
+                </label>
+              </td>
+            </tr>
+            <tr>
+              <td>Equity</td>
+              <td><input type="number" formControlName="equityFrom" class="form-input no-padding" /></td>
+              <td><input type="number" formControlName="equityTo" class="form-input no-padding" /></td>
+              <td>
+                <app-account-dropdown
+                  [selectedValue]="form.get('equityAccount')?.value"
+                  (accountSelected)="onAccountSelected('equityAccount', $event)"
+                  placeholder="Select Account">
+                </app-account-dropdown>
+              </td>
+              <td></td>
+            </tr>
+            <tr>
+              <td colspan="5" class="helper-text-row">
+                <div class="helper-text">(Helper text 1: e.g. "Select the relevant accounts for each interval.")</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="period-section">
+        <h3>Define period (Angi periode)</h3>
+        <table class="eliminations-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Period (mm)</th>
+              <th>Year (yyyy)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>From</td>
+              <td><input type="number" formControlName="periodFromMonth" placeholder="mm" class="form-input no-padding" min="1" max="12" /></td>
+              <td><input type="number" formControlName="periodFromYear" placeholder="yyyy" class="form-input no-padding" min="1900" max="2100" /></td>
+            </tr>
+            <tr>
+              <td>To</td>
+              <td><input type="number" formControlName="periodToMonth" placeholder="mm" class="form-input no-padding" min="1" max="12" /></td>
+              <td><input type="number" formControlName="periodToYear" placeholder="yyyy" class="form-input no-padding" min="1900" max="2100" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="helper-texts">
+        <div class="helper-text">(Helper text 2: e.g. "Define the period for the alternative calculation.")</div>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="btn-secondary" (click)="close()">Close</button>
+        <button type="submit" class="btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div> 

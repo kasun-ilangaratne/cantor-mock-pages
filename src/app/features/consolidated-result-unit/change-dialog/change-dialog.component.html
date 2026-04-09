@@ -1,0 +1,79 @@
+<div class="eliminations-dialog">
+  <div class="dialog-header">
+    <h2>Endring (Change)</h2>
+  </div>
+  
+  <div class="dialog-content">
+    <div class="table-section">
+      <div class="table-header">
+        <h3>Change Records</h3>
+      </div>
+      
+      <div class="table-container">
+        <div class="table-actions">
+          <button type="button" class="btn-primary" (click)="addNewRow()">
+            Ny (New)
+          </button>
+        </div>
+        
+        <table class="eliminations-table">
+          <thead>
+            <tr>
+              <th>Dato (Date)</th>
+              <th>Andel (Share) %</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let element of dataSource.data; let i = index">
+              <td>
+                <ng-container *ngIf="element.isNew; else dateDisplay">
+                  <input 
+                    type="date" 
+                    [value]="element.date"
+                    (change)="onDateChange(element, $event)"
+                    class="form-input no-padding" />
+                </ng-container>
+                <ng-template #dateDisplay>
+                  {{ element.date }}
+                </ng-template>
+              </td>
+              <td>
+                <ng-container *ngIf="element.isNew; else shareDisplay">
+                  <input 
+                    type="number" 
+                    [value]="element.share"
+                    (change)="onShareChange(element, $event)"
+                    class="form-input no-padding"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="0.00" />
+                </ng-container>
+                <ng-template #shareDisplay>
+                  {{ element.share }}%
+                </ng-template>
+              </td>
+              <td>
+                <button 
+                  type="button" 
+                  class="btn-delete" 
+                  (click)="deleteRow(i)"
+                  title="Delete row">
+                  ×
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-actions">
+    <div class="dialog-buttons">
+      <button type="button" class="btn-secondary" (click)="close()">Cancel</button>
+      <button type="button" class="btn-primary" (click)="save()">Save</button>
+    </div>
+  </div>
+</div> 

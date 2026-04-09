@@ -1,0 +1,27 @@
+<div class="share-classes-selection-dialog">
+  <div class="dialog-header">
+    <h2 class="dialog-title">Classes of shares used</h2>
+  </div>
+
+  <div class="dialog-content">
+    <div class="share-classes-grid">
+      <div class="share-class-item" *ngFor="let shareClass of shareClasses">
+        <mat-checkbox 
+          [(ngModel)]="shareClass.checked"
+          [id]="'share-class-' + shareClass.name">
+          {{ shareClass.name }}
+        </mat-checkbox>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-actions">
+    <button type="button" class="btn-cancel" (click)="onCancel()">
+      Avbryt
+    </button>
+    <button type="button" class="btn-save" (click)="onSave()">
+      Lagre
+    </button>
+  </div>
+</div>
+

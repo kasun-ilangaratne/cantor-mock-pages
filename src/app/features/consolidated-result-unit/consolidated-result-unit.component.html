@@ -1,0 +1,574 @@
+<div class="form-container">
+  <div class="form-header">
+    <h1>Consolidated Result Unit (Resultatenehet konsern)</h1>
+  </div>
+
+  <form [formGroup]="form" class="form-content">
+    <div class="form-sections">
+      
+      <!-- Basic Info Section -->
+      <div class="form-section">
+        <div class="section-header" (click)="toggleSection('basicInfo')">
+          <h3>Basic Information</h3>
+          <span class="expand-icon">{{ expandedSections['basicInfo'] ? '−' : '+' }}</span>
+        </div>
+        
+        <div class="section-content" [class.expanded]="expandedSections['basicInfo']">
+          <div class="form-fields-grid">
+            <div class="form-field">
+              <label for="dimensionNo">Dimension No. (Dimnr)</label>
+              <input 
+                type="text" 
+                id="dimensionNo"
+                formControlName="dimensionNo"
+                placeholder="Dimnr"
+                class="form-input">
+            </div>
+
+            <div class="form-field">
+              <label for="dimensionId">Dimension ID (DimId)</label>
+              <input 
+                type="text" 
+                id="dimensionId"
+                formControlName="dimensionId"
+                placeholder="Name"
+                class="form-input">
+            </div>
+
+            <div class="form-field">
+              <label for="name">Name (Navn)</label>
+              <input 
+                type="text" 
+                id="name"
+                formControlName="name"
+                placeholder="Name"
+                class="form-input">
+            </div>
+
+            <div class="form-field">
+              <label for="columnText1">Column Text 1 (Kolonnetekst 1)</label>
+              <input 
+                type="text" 
+                id="columnText1"
+                formControlName="columnText1"
+                class="form-input">
+            </div>
+
+            <div class="form-field">
+              <label for="columnText2">Column Text 2 (Kolonnetekst 2)</label>
+              <input 
+                type="text" 
+                id="columnText2"
+                formControlName="columnText2"
+                class="form-input">
+            </div>
+
+            <div class="form-field">
+              <label for="dimensionText">Dimension Text (Dimtekst)</label>
+              <input 
+                type="text" 
+                id="dimensionText"
+                formControlName="dimensionText"
+                class="form-input">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Group Relationship Section -->
+      <div class="form-section">
+        <div class="section-header" (click)="toggleSection('groupRelationship')">
+          <h3>Group Relationship (Konsernforhold)</h3>
+          <span class="expand-icon">{{ expandedSections['groupRelationship'] ? '−' : '+' }}</span>
+        </div>
+        
+        <div class="section-content" [class.expanded]="expandedSections['groupRelationship']">
+          <div class="form-fields-row">
+            <div class="form-field">
+              <label for="companyNo">Company No. (Firmanr)</label>
+              <input 
+                type="text" 
+                id="companyNo"
+                formControlName="companyNo"
+                class="form-input">
+            </div>
+
+            <div class="form-field">
+              <label for="groupDimensionNo">Group Dimension No. (Konserndim)</label>
+              <input 
+                type="text" 
+                id="groupDimensionNo"
+                formControlName="groupDimensionNo"
+                class="form-input">
+            </div>
+          </div>
+
+          <div class="checkbox-group">
+            <div class="checkbox-field">
+              <input 
+                type="checkbox" 
+                id="parent"
+                formControlName="parent"
+                class="form-checkbox">
+              <label for="parent">Parent (Mor)</label>
+            </div>
+
+            <div class="checkbox-field">
+              <input 
+                type="checkbox" 
+                id="accountDuplication"
+                formControlName="accountDuplication"
+                class="form-checkbox">
+              <label for="accountDuplication">Account Duplication (Kontodublering)</label>
+            </div>
+
+            <div class="checkbox-field">
+              <input 
+                type="checkbox" 
+                id="includeAllDimensions"
+                formControlName="includeAllDimensions"
+                class="form-checkbox">
+              <label for="includeAllDimensions">Include All Dimensions (Inkluder alle dimensjoner)</label>
+            </div>
+
+            <div class="checkbox-field">
+              <input 
+                type="checkbox" 
+                id="dimensionFilter"
+                formControlName="dimensionFilter"
+                class="form-checkbox">
+              <label for="dimensionFilter">Dimension Filter (Dimensjonsfilter)</label>
+              <button type="button" class="btn-primary" (click)="onDimensionFilter()">Dimensjonsfilter</button>
+            </div>
+
+            <div class="checkbox-field">
+              <input 
+                type="checkbox" 
+                id="netMethod"
+                formControlName="netMethod"
+                class="form-checkbox">
+              <label for="netMethod">Net Method (Nettometoden)</label>
+              <button type="button" class="btn-primary" (click)="onNetMethod()">Nettometoden</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Currency Section -->
+      <div class="form-section">
+        <div class="section-header" (click)="toggleSection('currency')">
+          <h3>Currency (Valuta)</h3>
+          <span class="expand-icon">{{ expandedSections['currency'] ? '−' : '+' }}</span>
+        </div>
+        
+        <div class="section-content" [class.expanded]="expandedSections['currency']">
+          <div class="form-field">
+            <label for="currency">Currency (Valuta)</label>
+            <select 
+              id="currency"
+              formControlName="currency"
+              class="form-select">
+              <option value="currency">Currency</option>
+              <option value="deullaroi">Deullaroi</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label class="section-subheader">Method (Metode)</label>
+            <div class="checkbox-group">
+              <div class="checkbox-field">
+                <input 
+                  type="checkbox" 
+                  id="periodicTranslation"
+                  formControlName="periodicTranslation"
+                  class="form-checkbox">
+                <label for="periodicTranslation">Periodic Translation (Periodisk omregning)</label>
+              </div>
+            </div>
+            
+            <div class="method-spacing"></div>
+            
+            <div class="form-fields-row">
+              <div class="form-field">
+                <label for="fxGainLossAccount">FX Gain/Loss Account (Konto valutadifferanse)</label>
+                <app-account-dropdown
+                  [selectedValue]="form.get('fxGainLossAccount')?.value"
+                  (valueChange)="form.get('fxGainLossAccount')?.setValue($event)"
+                  (accountSelected)="onAccountSelected('fxGainLossAccount', $event)"
+                  placeholder="Select Account">
+                </app-account-dropdown>
+              </div>
+
+              <div class="form-field">
+                <label for="offsetAccount">Offset Account (Motkonto)</label>
+                <app-account-dropdown
+                  [selectedValue]="form.get('offsetAccount')?.value"
+                  (valueChange)="form.get('offsetAccount')?.setValue($event)"
+                  (accountSelected)="onAccountSelected('offsetAccount', $event)"
+                  placeholder="Select Account">
+                </app-account-dropdown>
+              </div>
+            </div>
+          </div>
+
+          <div class="checkbox-group">
+            <div class="checkbox-field">
+              <input 
+                type="checkbox" 
+                id="dontShowFxAsElimination"
+                formControlName="dontShowFxAsElimination"
+                class="form-checkbox">
+              <label for="dontShowFxAsElimination">Do not show FX gain/loss as elimination (Ikke vis valutadifferanse som eliminering)</label>
+            </div>
+          </div>
+
+          <div class="field-spacing"></div>
+
+          <div class="checkbox-group">
+            <div class="checkbox-field">
+              <input 
+                type="checkbox" 
+                id="resultIsAppropriated"
+                formControlName="resultIsAppropriated"
+                class="form-checkbox">
+              <label for="resultIsAppropriated">Result is Appropriated (Resultatet er disponert)</label>
+            </div>
+          </div>
+
+          <div class="field-spacing"></div>
+
+          <div class="form-field">
+            <label for="plAccountsFromTo">P&L Accounts (From – To) (Resultatkonti)</label>
+            <div class="form-fields-row">
+              <div class="form-field">
+                <label for="plAccountsFrom">From</label>
+                <app-account-dropdown
+                  [selectedValue]="form.get('plAccountsFrom')?.value"
+                  (valueChange)="form.get('plAccountsFrom')?.setValue($event)"
+                  (accountSelected)="onAccountSelected('plAccountsFrom', $event)"
+                  placeholder="From Account">
+                </app-account-dropdown>
+              </div>
+              <div class="form-field">
+                <label for="plAccountsTo">To</label>
+                <app-account-dropdown
+                  [selectedValue]="form.get('plAccountsTo')?.value"
+                  (valueChange)="form.get('plAccountsTo')?.setValue($event)"
+                  (accountSelected)="onAccountSelected('plAccountsTo', $event)"
+                  placeholder="To Account">
+                </app-account-dropdown>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="equityAccountsFromTo">Equity Accounts (From – To) (Egenkapitalkonti)</label>
+            <div class="form-fields-row">
+              <div class="form-field">
+                <label for="equityAccountsFrom">From</label>
+                <app-account-dropdown
+                  [selectedValue]="form.get('equityAccountsFrom')?.value"
+                  (valueChange)="form.get('equityAccountsFrom')?.setValue($event)"
+                  (accountSelected)="onAccountSelected('equityAccountsFrom', $event)"
+                  placeholder="From Account">
+                </app-account-dropdown>
+              </div>
+              <div class="form-field">
+                <label for="equityAccountsTo">To</label>
+                <app-account-dropdown
+                  [selectedValue]="form.get('equityAccountsTo')?.value"
+                  (valueChange)="form.get('equityAccountsTo')?.setValue($event)"
+                  (accountSelected)="onAccountSelected('equityAccountsTo', $event)"
+                  placeholder="To Account">
+                </app-account-dropdown>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-fields-row">
+            <div class="form-field">
+              <label for="ociAccount">OCI Account (Konto OCI)</label>
+              <app-account-dropdown
+                [selectedValue]="form.get('ociAccount')?.value"
+                (valueChange)="form.get('ociAccount')?.setValue($event)"
+                (accountSelected)="onAccountSelected('ociAccount', $event)"
+                placeholder="Select Account">
+              </app-account-dropdown>
+            </div>
+            <button type="button" class="btn-primary" (click)="onException()">Unntak</button>
+          </div>
+
+          <div class="form-fields-row">
+            <div class="form-field">
+              <label for="profitAllocation">Profit Allocation (Resultatdisponering)</label>
+              <app-account-dropdown
+                [selectedValue]="form.get('profitAllocation')?.value"
+                (valueChange)="form.get('profitAllocation')?.setValue($event)"
+                (accountSelected)="onAccountSelected('profitAllocation', $event)"
+                placeholder="Select Account">
+              </app-account-dropdown>
+            </div>
+            <button type="button" class="btn-primary" (click)="onHistCost()">Hist. Cost</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Opening Balance Section -->
+      <div class="form-section">
+        <div class="section-header" (click)="toggleSection('openingBalance')">
+          <h3>Opening Balance</h3>
+          <span class="expand-icon">{{ expandedSections['openingBalance'] ? '−' : '+' }}</span>
+        </div>
+        
+        <div class="section-content" [class.expanded]="expandedSections['openingBalance']">
+          <div class="form-field">
+            <label for="openingBalanceStartYear">Opening Balance Start Year (Start år for IB)</label>
+            <select 
+              id="openingBalanceStartYear"
+              formControlName="openingBalanceStartYear"
+              class="form-select">
+              <option value="">Select Year</option>
+              <option value="2020">2020</option>
+              <option value="2021">2021</option>
+              <option value="2022">2022</option>
+              <option value="2023">2023</option>
+              <option value="2024">2024</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="openingBalanceEquity">Opening Balance Equity (IB Egenkapital)</label>
+            <input 
+              type="text" 
+              id="openingBalanceEquity"
+              formControlName="openingBalanceEquity"
+              class="form-input">
+          </div>
+
+          <div class="form-field">
+            <label for="openingBalanceFxTranslation">Opening Balance FX Translation (IB Valutaomregning)</label>
+            <input 
+              type="text" 
+              id="openingBalanceFxTranslation"
+              formControlName="openingBalanceFxTranslation"
+              class="form-input">
+          </div>
+        </div>
+      </div>
+
+      <!-- Restrictions Section -->
+      <div class="form-section">
+        <div class="section-header" (click)="toggleSection('restrictions')">
+          <h3>Restrictions (Begrensninger)</h3>
+          <span class="expand-icon">{{ expandedSections['restrictions'] ? '−' : '+' }}</span>
+        </div>
+        
+        <div class="section-content" [class.expanded]="expandedSections['restrictions']">
+          <div class="form-field">
+            <label for="sharePercent">Share % (Andel)</label>
+            <input 
+              type="text" 
+              id="sharePercent"
+              formControlName="sharePercent"
+              class="form-input">
+            <button type="button" class="btn-primary" (click)="onChange()">Endring</button>
+          </div>
+
+          <div class="form-field inline-field">
+            <label for="consolidateFromPeriod">Consolidate from (mm/yyyy) (Konsolidering fom, per (mm) – år (AAAA))</label>
+            <input 
+              type="text" 
+              id="consolidateFromPeriod"
+              formControlName="consolidateFromPeriod"
+              placeholder="mm/yyyy"
+              class="form-input">
+          </div>
+
+          <div class="form-field inline-field">
+            <label for="consolidateToPeriod">Consolidate to (mm/yyyy) (Konsolidering tom, per (mm) – år (AAAA))</label>
+            <input 
+              type="text" 
+              id="consolidateToPeriod"
+              formControlName="consolidateToPeriod"
+              placeholder="mm/yyyy"
+              class="form-input">
+          </div>
+
+          <div class="checkbox-field">
+            <input 
+              type="checkbox" 
+              id="balanceOnlyFirstPeriod"
+              formControlName="balanceOnlyFirstPeriod"
+              class="form-checkbox">
+            <label for="balanceOnlyFirstPeriod">Balance Only First Period (Kun balanse første periode)</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Minority Section -->
+      <div class="form-section">
+        <div class="section-header" (click)="toggleSection('minority')">
+          <h3>Minority (Minoritet)</h3>
+          <span class="expand-icon">{{ expandedSections['minority'] ? '−' : '+' }}</span>
+        </div>
+        
+        <div class="section-content" [class.expanded]="expandedSections['minority']">
+          <div class="form-field">
+            <label for="plAccountsFromMinority">P&L Accounts (From – To) (Resultatkonti)</label>
+            <div class="form-fields-row">
+              <div class="form-field">
+                <label for="plAccountsFromMinority">From</label>
+                <app-account-dropdown
+                  [selectedValue]="form.get('plAccountsFromMinority')?.value"
+                  (valueChange)="form.get('plAccountsFromMinority')?.setValue($event)"
+                  (accountSelected)="onAccountSelected('plAccountsFromMinority', $event)"
+                  placeholder="From Account">
+                </app-account-dropdown>
+              </div>
+              <div class="form-field">
+                <label for="plAccountsToMinority">To</label>
+                <app-account-dropdown
+                  [selectedValue]="form.get('plAccountsToMinority')?.value"
+                  (valueChange)="form.get('plAccountsToMinority')?.setValue($event)"
+                  (accountSelected)="onAccountSelected('plAccountsToMinority', $event)"
+                  placeholder="To Account">
+                </app-account-dropdown>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="minoritySharePercent">Minority Share % (Minoritets andel)</label>
+            <input 
+              type="text" 
+              id="minoritySharePercent"
+              formControlName="minoritySharePercent"
+              class="form-input">
+          </div>
+
+          <div class="form-fields-row">
+            <div class="form-field">
+              <label for="minorityResultAccount">Results (Resultat)</label>
+              <app-account-dropdown
+                [selectedValue]="form.get('minorityResultAccount')?.value"
+                (valueChange)="form.get('minorityResultAccount')?.setValue($event)"
+                (accountSelected)="onAccountSelected('minorityResultAccount', $event)"
+                placeholder="Select Account">
+              </app-account-dropdown>
+            </div>
+
+            <div class="form-field">
+              <label for="minorityBalanceAccount">Balance (Balanse)</label>
+              <app-account-dropdown
+                [selectedValue]="form.get('minorityBalanceAccount')?.value"
+                (valueChange)="form.get('minorityBalanceAccount')?.setValue($event)"
+                (accountSelected)="onAccountSelected('minorityBalanceAccount', $event)"
+                placeholder="Select Account">
+              </app-account-dropdown>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="minorityShareOfEquityOpeningBalance">Minority Share of Equity Opening Bal. (Minoritetens andel av egenkapital IB)</label>
+            <input 
+              type="text" 
+              id="minorityShareOfEquityOpeningBalance"
+              formControlName="minorityShareOfEquityOpeningBalance"
+              class="form-input">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tax Computation Section -->
+      <div class="form-section">
+        <div class="section-header" (click)="toggleSection('taxComputation')">
+          <h3>Tax Computation (Skatteberegning)</h3>
+          <span class="expand-icon">{{ expandedSections['taxComputation'] ? '−' : '+' }}</span>
+        </div>
+        
+        <div class="section-content" [class.expanded]="expandedSections['taxComputation']">
+          <div class="form-field">
+            <label for="plAccountsFromToTax">P&L Accounts (From – To) (Resultatkonti)</label>
+            <div class="form-fields-row">
+              <div class="form-field">
+                <label for="plAccountsFromTax">From</label>
+                <app-account-dropdown
+                  [selectedValue]="form.get('plAccountsFromTax')?.value"
+                  (valueChange)="form.get('plAccountsFromTax')?.setValue($event)"
+                  (accountSelected)="onAccountSelected('plAccountsFromTax', $event)"
+                  placeholder="From Account">
+                </app-account-dropdown>
+              </div>
+              <div class="form-field">
+                <label for="plAccountsToTax">To</label>
+                <app-account-dropdown
+                  [selectedValue]="form.get('plAccountsToTax')?.value"
+                  (valueChange)="form.get('plAccountsToTax')?.setValue($event)"
+                  (accountSelected)="onAccountSelected('plAccountsToTax', $event)"
+                  placeholder="To Account">
+                </app-account-dropdown>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="taxRatePercent">Tax Rate % (Skattesats)</label>
+            <input 
+              type="text" 
+              id="taxRatePercent"
+              formControlName="taxRatePercent"
+              class="form-input">
+            <button type="button" class="btn-primary" (click)="onTaxException()">Unntak</button>
+          </div>
+
+          <div class="form-fields-row">
+            <div class="form-field">
+              <label for="taxResultAccount">Results (Resultat)</label>
+              <app-account-dropdown
+                [selectedValue]="form.get('taxResultAccount')?.value"
+                (valueChange)="form.get('taxResultAccount')?.setValue($event)"
+                (accountSelected)="onAccountSelected('taxResultAccount', $event)"
+                placeholder="Select Account">
+              </app-account-dropdown>
+            </div>
+
+            <div class="form-field">
+              <label for="taxBalanceAccount">Balance (Balanse)</label>
+              <app-account-dropdown
+                [selectedValue]="form.get('taxBalanceAccount')?.value"
+                (valueChange)="form.get('taxBalanceAccount')?.setValue($event)"
+                (accountSelected)="onAccountSelected('taxBalanceAccount', $event)"
+                placeholder="Select Account">
+              </app-account-dropdown>
+            </div>
+          </div>
+
+          <div class="checkbox-field">
+            <input 
+              type="checkbox" 
+              id="includeIfrsEntries"
+              formControlName="includeIfrsEntries"
+              class="form-checkbox">
+            <label for="includeIfrsEntries">Include IFRS Entries (Inkluder IFRS – posteringer)</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Buttons -->
+    <div class="form-footer">
+      <button type="button" class="btn-primary" (click)="onEliminations()">
+        Eliminations (Elimineringer)
+      </button>
+      <button type="button" class="btn-primary" (click)="onCounterparties()">
+        Counterparties (Motparter)
+      </button>
+      <button type="button" class="btn-secondary" (click)="onCancel()">
+        Cancel (Avbryt)
+      </button>
+      <button type="submit" class="btn-primary" (click)="onSave()">
+        Save (Lagre)
+      </button>
+    </div>
+  </form>
+</div> 

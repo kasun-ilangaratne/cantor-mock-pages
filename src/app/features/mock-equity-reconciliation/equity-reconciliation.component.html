@@ -1,0 +1,220 @@
+<div class="equity-reconciliation-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <div class="logo">Cantor</div>
+    </div>
+    <div class="header-right">
+      <div class="header-info">
+        <span class="company">{{ company }}</span>
+        <select class="year-select" [(ngModel)]="year">
+          <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+        </select>
+        <select class="month-select" [(ngModel)]="month">
+          <option *ngFor="let m of months; let i = index" [value]="m">{{ monthNames[i] }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page Title with Excel Button -->
+  <div class="page-title-container">
+    <h1 class="page-title">Egenkapitalavstemming</h1>
+    <button mat-raised-button color="primary" (click)="exportToExcel()" class="excel-btn">
+      <mat-icon>download</mat-icon>
+      Excel
+    </button>
+  </div>
+
+  <!-- Main Content Area - Split Screen -->
+  <div class="main-content" [class.with-detail]="selectedRowId !== null">
+    <!-- Left Panel: Main Reconciliation Table -->
+    <div class="left-panel">
+      <!-- Checkbox Controls -->
+      <div class="checkbox-controls">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="ibFraSelskap" class="checkbox-input">
+          <span>IB fra selskap</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="inkluderUdisponertResultat" class="checkbox-input">
+          <span>Inkluder udisponert resultat</span>
+        </label>
+      </div>
+
+      <!-- Main Reconciliation Table -->
+      <div class="reconciliation-table">
+        <table class="table">
+          <thead>
+          <tr>
+            <th class="expand-col"></th>
+            <th class="label-col">Beskrivelse</th>
+            <th class="value-col">{{ currentPeriod }}</th>
+            <th class="value-col">Change during period</th>
+            <th class="value-col">{{ priorPeriod }}</th>
+          </tr>
+          </thead>
+          <tbody>
+            <tr 
+              *ngFor="let row of reconciliationRows" 
+              [class.selected]="row.expanded"
+              [class.expanded]="row.expanded"
+              [class.not-expandable]="!row.expandable"
+              (click)="row.expandable && toggleRow(row)">
+              <td class="expand-col">
+                <button 
+                  *ngIf="row.expandable"
+                  type="button" 
+                  class="expand-btn"
+                  (click)="toggleRow(row); $event.stopPropagation()"
+                  [attr.aria-label]="row.expanded ? 'Collapse' : 'Expand'">
+                  <mat-icon>{{ row.expanded ? 'remove' : 'add' }}</mat-icon>
+                </button>
+              </td>
+              <td class="label-col">{{ row.label }}</td>
+              <td class="value-col">{{ formatNumber(row.currentPeriod) }}</td>
+              <td class="value-col">{{ formatNumber(row.changeDuringPeriod) }}</td>
+              <td class="value-col">{{ formatNumber(row.priorPeriod) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button 
+          type="button" 
+          class="action-btn"
+          [class.active]="activeTab === 0"
+          (click)="openEgenkapitalGruppeDialog()">
+          Egenkapital gruppe
+        </button>
+        <button 
+          type="button" 
+          class="action-btn"
+          [class.active]="activeTab === 1"
+          (click)="openValutaomregningerDialog()">
+          Valutaomregninger
+        </button>
+        <button 
+          type="button" 
+          class="action-btn"
+          [class.active]="activeTab === 2"
+          (click)="openDatterselskapDialog()">
+          Datterselskap
+        </button>
+        <button 
+          type="button" 
+          class="action-btn"
+          [class.active]="activeTab === 3"
+          (click)="openNotesDialog()">
+          Note
+        </button>
+      </div>
+
+      <!-- Save Button -->
+      <div class="footer-actions">
+        <button type="button" (click)="save()" class="save-btn">
+          Lagre
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Panel: Detail Breakdown -->
+    <div class="right-panel" *ngIf="selectedRowId !== null">
+      <div class="detail-header">
+        <h2 class="detail-title">
+          <span *ngIf="isAndreEndringerView()">Andre endringer – detaljer</span>
+          <span *ngIf="!isAndreEndringerView()">{{ getSelectedRowLabel() }} for {{ currentPeriod }}</span>
+        </h2>
+        <button 
+          type="button" 
+          class="close-btn"
+          (click)="closeDetailPanel()"
+          aria-label="Close detail panel">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="detail-content">
+        <!-- Andre endringer table -->
+        <table class="detail-table andre-endringer-table" *ngIf="isAndreEndringerView()">
+          <thead>
+            <tr>
+              <th>Nr</th>
+              <th>Beskrivelse</th>
+              <th>UB 30.11</th>
+              <th>Endring</th>
+              <th>IB 01.01</th>
+              <th>Edit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr 
+              *ngFor="let row of andreEndringerRows"
+              [class.selected]="selectedAndreEndringerRow === row"
+              (click)="selectAndreEndringerRow(row)">
+              <td>{{ row.nr }}</td>
+              <td>{{ row.beskrivelse }}</td>
+              <td class="number-cell">{{ formatNumber(row.ub3011) }}</td>
+              <td class="number-cell">{{ formatNumber(row.endring) }}</td>
+              <td class="number-cell">{{ formatNumber(row.ib0101) }}</td>
+              <td class="edit-cell">
+                <button 
+                  type="button"
+                  class="edit-btn"
+                  (click)="startEditAndreEndringer(row); $event.stopPropagation()"
+                  aria-label="Edit row">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </td>
+            </tr>
+            <!-- Totals row -->
+            <tr class="totals-row">
+              <td colspan="2"><strong>Sum</strong></td>
+              <td class="number-cell"><strong>{{ formatNumber(getAndreEndringerTotals().ub3011) }}</strong></td>
+              <td class="number-cell"><strong>{{ formatNumber(getAndreEndringerTotals().endring) }}</strong></td>
+              <td class="number-cell"><strong>{{ formatNumber(getAndreEndringerTotals().ib0101) }}</strong></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Regular detail table for IB egenkapital and UB egenkapital -->
+        <table class="detail-table" *ngIf="!isAndreEndringerView()">
+          <thead>
+            <tr>
+              <th>Kontonr</th>
+              <th>Kontonavn</th>
+              <th>UB 30.11</th>
+              <th>Endring</th>
+              <th>IB 01.01</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let detailRow of detailRows">
+              <td>{{ detailRow.kontonr }}</td>
+              <td>{{ detailRow.kontonavn }}</td>
+              <td class="number-cell">{{ formatNumber(detailRow.ub3011) }}</td>
+              <td class="number-cell">{{ formatNumber(detailRow.endring) }}</td>
+              <td class="number-cell">{{ formatNumber(detailRow.ib0101) }}</td>
+              <td class="type-cell">
+                <select 
+                  [value]="detailRow.type" 
+                  (change)="onTypeChange(detailRow, $any($event.target).value)"
+                  class="type-select">
+                  <option *ngFor="let option of typeOptions" [value]="option">{{ option }}</option>
+                </select>
+              </td>
+            </tr>
+            <tr *ngIf="detailRows.length === 0" class="empty-row">
+              <td colspan="6" class="empty-message">Ingen data tilgjengelig</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+

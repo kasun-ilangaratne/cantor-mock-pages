@@ -1,0 +1,323 @@
+.edit-dialog-container {
+  display: flex;
+  flex-direction: column;
+  min-width: 600px;
+  max-width: 800px;
+  font-family: inherit;
+}
+
+::ng-deep .andre-endringer-edit-dialog {
+  .mat-dialog-container {
+    padding: 0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+  }
+}
+
+.dialog-title {
+  margin: 0;
+  padding: 20px 20px 16px 20px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dialog-content {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(90vh - 150px);
+  margin: 0 !important;
+}
+
+// Header Tabs
+.dialog-header-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+
+  .tab-field-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .tab {
+      padding: 8px 16px;
+      background-color: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+      cursor: pointer;
+      font-size: 14px;
+      color: #666;
+      transition: all 0.2s ease;
+
+      &.active {
+        background-color: white;
+        color: #333;
+        font-weight: 500;
+        border-color: #e5e7eb;
+      }
+
+      &:hover:not(.active) {
+        background-color: #e9ecef;
+      }
+    }
+
+    .tab-input {
+      padding: 6px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 14px;
+      width: 80px;
+    }
+  }
+}
+
+// Formula Section
+.formula-section {
+  margin-bottom: 20px;
+
+  .formula-input {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    resize: vertical;
+    background-color: white;
+
+    &:focus {
+      outline: none;
+      border-color: #1e40af;
+      box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+    }
+  }
+}
+
+// Function Dropdowns
+.function-dropdowns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  .dropdown-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .dropdown-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .function-select {
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 14px;
+      background-color: white;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 8px center;
+      background-repeat: no-repeat;
+      background-size: 16px;
+      padding-right: 36px;
+
+      &:hover {
+        border-color: #1e40af;
+      }
+
+      &:focus {
+        outline: none;
+        border-color: #1e40af;
+        box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+      }
+    }
+  }
+}
+
+// Dimension Section
+.dimension-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: #f9fafb;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+
+  .dimension-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #333;
+      cursor: pointer;
+
+      .checkbox-input {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: #1e40af;
+      }
+    }
+
+    .dimension-select {
+      padding: 6px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 14px;
+      background-color: white;
+      cursor: pointer;
+
+      &:disabled {
+        background-color: #f3f4f6;
+        cursor: not-allowed;
+      }
+
+      &:focus {
+        outline: none;
+        border-color: #1e40af;
+      }
+    }
+  }
+}
+
+// Reports Section
+.reports-section {
+  margin-bottom: 20px;
+
+  .section-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 12px;
+  }
+
+  .reports-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 4px;
+
+    .report-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .report-label {
+        font-size: 10px;
+        font-weight: 500;
+        color: #666;
+        text-align: center;
+        margin: 0;
+        line-height: 1.2;
+      }
+
+      .report-input {
+        padding: 2px 4px;
+        border: 1px solid #d1d5db;
+        border-radius: 3px;
+        font-size: 11px;
+        text-align: center;
+        background-color: white;
+        width: 100%;
+        min-width: 0;
+        height: 24px;
+        line-height: 1.2;
+
+        &:focus {
+          outline: none;
+          border-color: #1e40af;
+          box-shadow: 0 0 0 1px rgba(30, 64, 175, 0.1);
+        }
+      }
+    }
+  }
+}
+
+// Reference Section
+.reference-section {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .reference-label {
+    font-size: 14px;
+    color: #333;
+    white-space: nowrap;
+  }
+
+  .reference-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: white;
+
+    &:focus {
+      outline: none;
+      border-color: #1e40af;
+      box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+    }
+  }
+}
+
+// Dialog Actions
+::ng-deep .dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px 20px 20px;
+  border-top: 1px solid #e5e7eb;
+  margin: 0 !important;
+
+  .btn-cancel,
+  .btn-save {
+    min-width: 100px;
+    height: 40px;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-cancel {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+
+    &:hover {
+      background-color: #e5e7eb;
+    }
+  }
+
+  .btn-save {
+    background-color: #4b5563;
+    color: white;
+
+    &:hover {
+      background-color: #374151;
+    }
+  }
+}
+

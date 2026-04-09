@@ -1,0 +1,13 @@
+<select 
+  [(ngModel)]="selectedValue"
+  (ngModelChange)="onValueChange($event)"
+  [disabled]="disabled"
+  [required]="required"
+  class="account-dropdown">
+  <option value="">{{ placeholder }}</option>
+  <option 
+    *ngFor="let account of accountOptions" 
+    [value]="account.value">
+    {{ account.label }}
+  </option>
+</select> 

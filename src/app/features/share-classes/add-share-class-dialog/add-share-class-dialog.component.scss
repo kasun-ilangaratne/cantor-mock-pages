@@ -1,0 +1,107 @@
+.add-share-class-dialog-container {
+  display: flex;
+  flex-direction: column;
+  min-width: 500px;
+  max-width: 600px;
+  font-family: inherit;
+}
+
+.dialog-title {
+  margin: 0;
+  padding: 20px 20px 16px 20px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dialog-content {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(90vh - 150px);
+  margin: 0 !important;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+  }
+
+  .field-input {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: white;
+    font-family: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: #1e40af;
+      box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+    }
+  }
+}
+
+// Dialog Actions
+::ng-deep .dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px 20px 20px;
+  border-top: 1px solid #e5e7eb;
+  margin: 0 !important;
+
+  .btn-cancel,
+  .btn-save {
+    min-width: 100px;
+    height: 40px;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: 2px solid #1e40af;
+      outline-offset: 2px;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+
+  .btn-cancel {
+    background-color: #6b7280;
+    color: white;
+
+    &:hover {
+      background-color: #4b5563;
+    }
+  }
+
+  .btn-save {
+    background-color: #4b5563;
+    color: white;
+
+    &:hover {
+      background-color: #374151;
+    }
+  }
+}
+

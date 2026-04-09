@@ -1,0 +1,79 @@
+<div class="risk-details-dialog-container">
+  <h2 mat-dialog-title class="dialog-title">RISK Detaljer</h2>
+  
+  <mat-dialog-content class="dialog-content">
+    <!-- Add New Entry -->
+    <div class="add-entry-section">
+      <div class="add-entry-fields">
+        <div class="field-group">
+          <label>År</label>
+          <select [(ngModel)]="newYear" class="field-select">
+            <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>RISK-beløp</label>
+          <input 
+            type="number"
+            [(ngModel)]="newRiskAmount"
+            min="0"
+            class="field-input"
+            placeholder="0">
+        </div>
+        <button type="button" class="add-btn" (click)="addRiskEntry()">
+          <mat-icon>add</mat-icon>
+          Legg til
+        </button>
+      </div>
+    </div>
+
+    <!-- Risk Entries Table -->
+    <div class="risk-table-section">
+      <table class="risk-table">
+        <thead>
+          <tr>
+            <th class="year-col">År</th>
+            <th class="amount-col">RISK-beløp</th>
+            <th class="action-col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let entry of riskEntries">
+            <td class="year-col">{{ entry['år'] }}</td>
+            <td class="amount-col">
+              <input 
+                type="number"
+                [value]="entry['riskBeløp']"
+                (blur)="updateRiskEntry(entry, +$any($event.target).value)"
+                min="0"
+                class="inline-input">
+            </td>
+            <td class="action-col">
+              <button 
+                type="button"
+                class="delete-btn"
+                (click)="deleteRiskEntry(entry)"
+                aria-label="Delete">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </tr>
+          <tr class="total-row" *ngIf="riskEntries.length > 0">
+            <td class="year-col"><strong>Sum</strong></td>
+            <td class="amount-col"><strong>{{ formatNumber(totalRisk) }}</strong></td>
+            <td class="action-col"></td>
+          </tr>
+          <tr *ngIf="riskEntries.length === 0" class="empty-row">
+            <td colspan="3" class="empty-message">Ingen RISK-poster registrert</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-cancel" (click)="onCancel()">Avbryt</button>
+    <button type="button" class="btn-save" (click)="onSave()">Lagre</button>
+  </mat-dialog-actions>
+</div>
+

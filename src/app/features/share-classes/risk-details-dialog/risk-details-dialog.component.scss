@@ -1,0 +1,261 @@
+.risk-details-dialog-container {
+  display: flex;
+  flex-direction: column;
+  min-width: 500px;
+  max-width: 600px;
+  font-family: inherit;
+}
+
+.dialog-title {
+  margin: 0;
+  padding: 20px 20px 16px 20px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dialog-content {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(90vh - 150px);
+  margin: 0 !important;
+}
+
+// Add Entry Section
+.add-entry-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+
+  .add-entry-fields {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+
+    .field-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #333;
+      }
+
+      .field-select,
+      .field-input {
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 14px;
+        background-color: white;
+
+        &:focus {
+          outline: none;
+          border-color: #1e40af;
+          box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+        }
+      }
+    }
+
+    .add-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background-color: #4b5563;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+
+      &:hover {
+        background-color: #374151;
+      }
+    }
+  }
+}
+
+// Risk Table
+.risk-table-section {
+  margin-bottom: 10px;
+}
+
+.risk-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  font-size: 13px;
+
+  thead {
+    tr {
+      background-color: #f8f9fa;
+      
+      th {
+        padding: 10px 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 12px;
+        color: #333;
+        border: 1px solid #d1d5db;
+        background-color: #f8f9fa;
+
+        &.year-col {
+          width: 100px;
+        }
+
+        &.amount-col {
+          width: 200px;
+        }
+
+        &.action-col {
+          width: 60px;
+          text-align: center;
+        }
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      td {
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        background-color: white;
+
+        &.year-col {
+          font-weight: 500;
+        }
+
+        &.amount-col {
+          .inline-input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            text-align: right;
+            background-color: white;
+
+            &:focus {
+              outline: none;
+              border-color: #1e40af;
+              box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+            }
+          }
+        }
+
+        &.action-col {
+          text-align: center;
+
+          .delete-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            mat-icon {
+              font-size: 18px;
+              width: 18px;
+              height: 18px;
+            }
+
+            &:hover {
+              background-color: #fee2e2;
+            }
+          }
+        }
+      }
+
+      &.total-row {
+        background-color: #f8f9fa;
+        font-weight: 600;
+
+        td {
+          border-top: 2px solid #d1d5db;
+          padding-top: 12px;
+        }
+      }
+
+      &.empty-row {
+        .empty-message {
+          text-align: center;
+          color: #6b7280;
+          font-style: italic;
+          padding: 40px 20px;
+        }
+      }
+    }
+  }
+}
+
+// Dialog Actions
+::ng-deep .dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px 20px 20px;
+  border-top: 1px solid #e5e7eb;
+  margin: 0 !important;
+
+  .btn-cancel,
+  .btn-save {
+    min-width: 100px;
+    height: 40px;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: 2px solid #1e40af;
+      outline-offset: 2px;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+
+  .btn-cancel {
+    background-color: #6b7280;
+    color: white;
+
+    &:hover {
+      background-color: #4b5563;
+    }
+  }
+
+  .btn-save {
+    background-color: #4b5563;
+    color: white;
+
+    &:hover {
+      background-color: #374151;
+    }
+  }
+}
+

@@ -1,0 +1,74 @@
+<div class="add-share-class-dialog-container">
+  <h2 mat-dialog-title class="dialog-title">Legg til aksjeklasse</h2>
+  
+  <mat-dialog-content class="dialog-content">
+    <div class="form-fields">
+      <div class="field-group">
+        <label>Aksjeklasse navn *</label>
+        <input 
+          type="text"
+          [(ngModel)]="navn"
+          placeholder="F.eks. A-aksjer"
+          class="field-input"
+          required>
+      </div>
+
+      <div class="field-group">
+        <label>Antall aksjer</label>
+        <input 
+          type="number"
+          [(ngModel)]="antallAksjer"
+          min="0"
+          class="field-input"
+          placeholder="0">
+      </div>
+
+      <div class="field-group">
+        <label>Pålydende</label>
+        <input 
+          type="number"
+          [(ngModel)]="parValue"
+          min="0"
+          step="0.01"
+          class="field-input"
+          placeholder="0">
+      </div>
+
+      <div class="field-group">
+        <label>Innbetalt overkurs</label>
+        <input 
+          type="number"
+          [(ngModel)]="innbetaltOverkurs"
+          min="0"
+          class="field-input"
+          placeholder="0">
+      </div>
+
+      <div class="field-group">
+        <label>Formuesverdi per aksje</label>
+        <input 
+          type="number"
+          [(ngModel)]="formuesverdiPerAksje"
+          min="0"
+          step="0.01"
+          class="field-input"
+          placeholder="0">
+      </div>
+
+      <div class="field-group">
+        <label>ISDN</label>
+        <input 
+          type="text"
+          [(ngModel)]="isdn"
+          class="field-input"
+          placeholder="NO123456789">
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-cancel" (click)="onCancel()">Avbryt</button>
+    <button type="button" class="btn-save" (click)="onSave()">Lagre</button>
+  </mat-dialog-actions>
+</div>
+

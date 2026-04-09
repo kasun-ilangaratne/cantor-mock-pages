@@ -1,0 +1,72 @@
+<div class="egenkapital-gruppe-dialog-container">
+  <h2 mat-dialog-title class="dialog-title">Egenkapital grupper</h2>
+  
+  <mat-dialog-content class="dialog-content">
+    <!-- Add Group Button -->
+    <div class="add-group-section">
+      <button type="button" class="add-btn" (click)="addGroup()">
+        <mat-icon>add</mat-icon>
+        Legge til
+      </button>
+    </div>
+
+    <!-- Group List -->
+    <div class="groups-list">
+      <div 
+        *ngFor="let group of groups" 
+        class="group-item"
+        [class.editing]="group.isEditing">
+        
+        <div class="group-content" *ngIf="!group.isEditing">
+          <span class="group-name">{{ group.name }}</span>
+          <button 
+            type="button" 
+            class="delete-btn"
+            (click)="deleteGroup(group)"
+            aria-label="Delete group">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+
+        <div class="group-edit" *ngIf="group.isEditing">
+          <input 
+            type="text"
+            class="group-input"
+            [(ngModel)]="group.name"
+            placeholder="Skriv inn gruppenavn"
+            (keydown.enter)="saveGroup(group)"
+            (keydown.escape)="cancelEdit(group)"
+            #nameInput
+            autofocus>
+          <div class="edit-actions">
+            <button 
+              type="button"
+              class="save-btn"
+              (click)="saveGroup(group)"
+              [disabled]="!group.name.trim()"
+              aria-label="Save">
+              <mat-icon>check</mat-icon>
+            </button>
+            <button 
+              type="button"
+              class="cancel-btn"
+              (click)="cancelEdit(group)"
+              aria-label="Cancel">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="groups.length === 0" class="empty-state">
+        Ingen grupper. Klikk "Legge til" for å legge til en gruppe.
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-cancel" (click)="onCancel()">Avbryt</button>
+    <button type="button" class="btn-save" (click)="onSave()">Lagre</button>
+  </mat-dialog-actions>
+</div>
+

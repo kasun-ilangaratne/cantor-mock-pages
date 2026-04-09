@@ -1,0 +1,227 @@
+<div class="shareholder-modal">
+  <h2 mat-dialog-title class="dialog-title">
+    {{ getDialogTitle() }}
+  </h2>
+
+  <mat-dialog-content class="dialog-content">
+    <!-- Shareholder Type Selection -->
+    <div class="form-section">
+      <div class="form-group type-selector-group">
+        <label>Aksjonærtype</label>
+        <select class="form-input type-select" [(ngModel)]="shareholderType">
+          <option value="Selskap">Selskap</option>
+          <option value="Personlig">Personlig</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Identification & Address (Two-column layout) -->
+    <div class="form-section two-column">
+      <div class="column-left">
+        <div class="form-group">
+          <label>Organisasjonsnummer</label>
+          <div class="input-with-icon">
+            <input 
+              type="text" 
+              class="form-input"
+              [(ngModel)]="personnrOrgNr"
+              placeholder="Organisasjonsnummer">
+            <mat-icon 
+              class="lookup-icon" 
+              *ngIf="shareholderType === 'Selskap'"
+              (click)="onLookupCompany()"
+              title="Søk etter selskap">
+              search
+            </mat-icon>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Adresse</label>
+          <input 
+            type="text" 
+            class="form-input"
+            [(ngModel)]="adresse"
+            placeholder="Adresse">
+        </div>
+
+        <div class="form-group">
+          <label>Postnummer / -sted</label>
+          <div class="postal-input-group">
+            <input 
+              type="text" 
+              class="form-input"
+              [(ngModel)]="postnummer"
+              placeholder="Postnummer">
+            <span class="separator">/</span>
+            <input 
+              type="text" 
+              class="form-input"
+              [(ngModel)]="poststed"
+              placeholder="Poststed">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Kommune</label>
+          <select class="form-input" [(ngModel)]="kommune">
+            <option value="">Velg kommune</option>
+            <option *ngFor="let k of kommuner" [value]="k">{{ k }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="column-right">
+        <div class="form-group">
+          <label>Navn</label>
+          <input 
+            type="text" 
+            class="form-input"
+            [(ngModel)]="navn"
+            placeholder="Navn">
+        </div>
+
+        <div class="form-group">
+          <label>Telefon</label>
+          <input 
+            type="text" 
+            class="form-input"
+            [(ngModel)]="telefon"
+            placeholder="Telefon">
+        </div>
+
+        <div class="form-group">
+          <label>E-post</label>
+          <input 
+            type="email" 
+            class="form-input"
+            [(ngModel)]="epost"
+            placeholder="E-post">
+        </div>
+
+        <div class="form-group">
+          <label>Landkode</label>
+          <select class="form-input" [(ngModel)]="landkode">
+            <option *ngFor="let lk of landkoder" [value]="lk.split(' - ')[0]">
+              {{ lk }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bank Accounts Section -->
+    <div class="form-section bank-accounts-section">
+      <div class="section-header" (click)="bankAccountsExpanded = !bankAccountsExpanded">
+        <h3>Bankkontoer ({{ getBankAccountsCount() }})</h3>
+        <mat-icon class="expand-icon" [class.expanded]="bankAccountsExpanded">expand_more</mat-icon>
+      </div>
+      
+      <div class="bank-accounts-content" *ngIf="bankAccountsExpanded">
+        <table class="bank-accounts-table">
+          <thead>
+            <tr>
+              <th>Valuta</th>
+              <th>Bankkonto</th>
+              <th>IBAN</th>
+              <th>Swift</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let account of bankAccounts; let i = index">
+              <td>
+                <input 
+                  type="text" 
+                  class="table-input"
+                  [(ngModel)]="account.valuta"
+                  placeholder="Valuta"
+                  maxlength="3">
+              </td>
+              <td>
+                <input 
+                  type="text" 
+                  class="table-input"
+                  [(ngModel)]="account.bankkonto"
+                  placeholder="Bankkonto">
+              </td>
+              <td>
+                <input 
+                  type="text" 
+                  class="table-input"
+                  [(ngModel)]="account.iban"
+                  placeholder="IBAN">
+              </td>
+              <td>
+                <input 
+                  type="text" 
+                  class="table-input"
+                  [(ngModel)]="account.swift"
+                  placeholder="Swift">
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Transactions Button -->
+    <div class="form-section">
+      <button type="button" class="transactions-btn" (click)="onTransactions()">
+        Transaksjoner
+      </button>
+    </div>
+
+    <!-- Share Classes & Opening Balances -->
+    <div class="form-section share-classes-section">
+      <h3>Aksjeklasser</h3>
+      <table class="share-classes-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Aksjeklasse</th>
+            <th>Antall IB</th>
+            <th>Andel IB (%)</th>
+            <th>Antall UB</th>
+            <th>Andel UB (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let shareClass of shareClassBalances">
+            <td>
+              <input 
+                type="checkbox"
+                [(ngModel)]="shareClass.selected"
+                (ngModelChange)="onShareClassChange(shareClass)">
+            </td>
+            <td>{{ shareClass.shareClassName }}</td>
+            <td>
+              <input 
+                type="number"
+                class="table-input"
+                [(ngModel)]="shareClass.antallIB"
+                (ngModelChange)="onShareClassChange(shareClass)"
+                min="0"
+                [disabled]="!shareClass.selected">
+            </td>
+            <td class="readonly">{{ shareClass.andelIB.toFixed(2) }}</td>
+            <td class="readonly">{{ shareClass.antallUB }}</td>
+            <td class="readonly">{{ shareClass.andelUB.toFixed(2) }}</td>
+          </tr>
+          <tr class="total-row">
+            <td></td>
+            <td><strong>{{ getTotalRow().shareClassName }}</strong></td>
+            <td class="readonly"><strong>{{ getTotalRow().antallIB }}</strong></td>
+            <td class="readonly"><strong>{{ getTotalRow().andelIB.toFixed(2) }}</strong></td>
+            <td class="readonly"><strong>{{ getTotalRow().antallUB }}</strong></td>
+            <td class="readonly"><strong>{{ getTotalRow().andelUB.toFixed(2) }}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <button type="button" class="cancel-btn" (click)="onCancel()">Avbryt</button>
+    <button type="button" class="save-btn" (click)="onSave()">Lagre</button>
+  </mat-dialog-actions>
+</div>

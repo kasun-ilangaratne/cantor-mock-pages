@@ -1,0 +1,102 @@
+<div class="edit-dialog-container">
+  <h2 mat-dialog-title class="dialog-title">Rediger Andre endringer</h2>
+  
+  <mat-dialog-content class="dialog-content">
+  <!-- Header Tabs -->
+  <div class="dialog-header-tabs">
+    <div class="tab-field-group">
+      <div class="tab" [class.active]="selectedTab === 'Formel'" (click)="selectTab('Formel')">
+        Formel
+      </div>
+      <input type="text" class="tab-input" [(ngModel)]="accountNumber" placeholder="0400">
+    </div>
+    <div class="tab-field-group">
+      <div class="tab" [class.active]="selectedTab === 'Årets resultat'" (click)="selectTab('Årets resultat')">
+        Årets resultat
+      </div>
+    </div>
+  </div>
+
+  <!-- Formula Input Area -->
+  <div class="formula-section">
+    <textarea 
+      class="formula-input" 
+      [(ngModel)]="formula"
+      placeholder="SALDOV(3000:8399)*-1">
+    </textarea>
+  </div>
+
+  <!-- Function Selection Dropdowns -->
+  <div class="function-dropdowns">
+    <div class="dropdown-group">
+      <label class="dropdown-label">Velg en funksjon:</label>
+      <select class="function-select" [(ngModel)]="selectedFunction1">
+        <option value="">-- Velg funksjon --</option>
+        <option *ngFor="let func of functions" [value]="func">{{ func }}</option>
+      </select>
+    </div>
+    
+    <div class="dropdown-group">
+      <label class="dropdown-label">Næringsspesifikasjon</label>
+      <select class="function-select" [(ngModel)]="selectedFunction2">
+        <option value="">-- Velg funksjon --</option>
+        <option *ngFor="let func of functions" [value]="func">{{ func }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Dimension Calculation Section -->
+  <div class="dimension-section">
+    <div class="dimension-controls">
+      <label class="checkbox-label">
+        <input type="checkbox" [(ngModel)]="calculateDimension" class="checkbox-input">
+        <span>Kalkuler dimensjon</span>
+      </label>
+      
+      <select class="dimension-select" [(ngModel)]="dimensionValue" [disabled]="!calculateDimension">
+        <option value="Dim 0">Dim 0</option>
+        <option value="Dim 1">Dim 1</option>
+        <option value="Dim 2">Dim 2</option>
+        <option value="Dim 3">Dim 3</option>
+      </select>
+      
+      <label class="checkbox-label">
+        <input type="checkbox" [(ngModel)]="setDimensionEqualToTotal" class="checkbox-input">
+        <span>Sett dimensjon lik totalverdi</span>
+      </label>
+      
+      <label class="checkbox-label">
+        <input type="checkbox" [(ngModel)]="accumulateDimension" class="checkbox-input">
+        <span>Akkumuler dimensjon</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Reports Section -->
+  <div class="reports-section">
+    <label class="section-label">Rapporter</label>
+    <div class="reports-grid">
+      <div *ngFor="let report of reports; let i = index" class="report-input-group">
+        <label class="report-label">{{ i + 1 }}</label>
+        <input 
+          type="text"
+          class="report-input"
+          [(ngModel)]="reports[i]">
+      </div>
+    </div>
+  </div>
+
+  <!-- Reference Section -->
+  <div class="reference-section">
+    <label class="reference-label">Ref til</label>
+    <input type="text" class="reference-input" [(ngModel)]="reference" placeholder="RR-0002">
+  </div>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-cancel" (click)="onCancel()">Avbryt</button>
+    <button type="button" class="btn-save" (click)="onSave()">Lagre</button>
+  </mat-dialog-actions>
+</div>
+

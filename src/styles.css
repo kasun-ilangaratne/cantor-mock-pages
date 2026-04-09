@@ -1,0 +1,153 @@
+/* You can add global styles to this file, and also import other style files */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+/* Snackbar styles */
+.success-snackbar {
+  background: #10b981 !important;
+  color: white !important;
+}
+
+.error-snackbar {
+  background: #ef4444 !important;
+  color: white !important;
+}
+
+/* Global styles */
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Responsive utilities */
+@media (max-width: 1024px) {
+  .lg\:flex-row {
+    flex-direction: column;
+  }
+  
+  .lg\:basis-1\/2 {
+    flex-basis: 100%;
+  }
+}
+
+/* Slider Dialog Styles */
+.slider-dialog {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: auto !important;
+  width: 75vw !important;
+  max-width: 1200px !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3) !important;
+  animation: slideInFromRight 0.3s ease-out !important;
+}
+
+.slider-dialog .mat-dialog-container {
+  border-radius: 0 !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Backdrop styles for slider */
+.cdk-overlay-pane.slider-dialog {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: auto !important;
+}
+
+/* Mobile responsive for slider */
+@media (max-width: 768px) {
+  .slider-dialog {
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+}
+
+/* Exception Dialog Overlay */
+.exception-dialog-overlay {
+  z-index: 1001 !important;
+  position: fixed !important;
+  top: 50px !important;
+  right: 50px !important;
+  left: auto !important;
+  bottom: auto !important;
+}
+
+.exception-dialog-overlay .mat-dialog-container {
+  z-index: 1001 !important;
+  position: relative !important;
+}
+
+/* Ensure exception dialog appears above counterparty dialog */
+.cdk-overlay-pane.exception-dialog-overlay {
+  z-index: 1001 !important;
+  position: fixed !important;
+  top: 50px !important;
+  right: 50px !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+}
+
+.cdk-overlay-backdrop.exception-dialog-overlay {
+  z-index: 1000 !important;
+}
+
+/* Override default dialog positioning */
+.cdk-overlay-pane.exception-dialog-overlay .mat-dialog-container {
+  position: relative !important;
+  transform: none !important;
+}
+
+/* Dimension Filter Dialog Overlay */
+.dimension-filter-dialog-overlay {
+  z-index: 1001 !important;
+  position: fixed !important;
+  top: 50px !important;
+  right: 50px !important;
+  left: auto !important;
+  bottom: auto !important;
+}
+
+.dimension-filter-dialog-overlay .mat-dialog-container {
+  z-index: 1001 !important;
+  position: relative !important;
+}
+
+/* Ensure dimension filter dialog appears on the right side */
+.cdk-overlay-pane.dimension-filter-dialog-overlay {
+  z-index: 1001 !important;
+  position: fixed !important;
+  top: 50px !important;
+  right: 50px !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+}
+
+.cdk-overlay-backdrop.dimension-filter-dialog-overlay {
+  z-index: 1000 !important;
+}
+
+/* Override default dialog positioning for dimension filter */
+.cdk-overlay-pane.dimension-filter-dialog-overlay .mat-dialog-container {
+  position: relative !important;
+  transform: none !important;
+} 

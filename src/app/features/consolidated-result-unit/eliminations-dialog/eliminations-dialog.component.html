@@ -1,0 +1,957 @@
+<div class="eliminations-dialog">
+  <div class="dialog-header">
+    <h2>Elimineringer (Eliminations)</h2>
+  </div>
+
+  <div class="dialog-content" (click)="closeAllContextMenus()">
+    <div class="table-section">
+      <div class="table-header">
+        <h3>Eliminations Table</h3>
+        <div class="debug-info">
+          Current type: {{ eliminationType }}
+        </div>
+        <div class="filter-field inline-field">
+          <label for="filter">Filter</label>
+          <input 
+            type="text" 
+            id="filter"
+            (keyup)="applyFilter($event)" 
+            placeholder="Search eliminations"
+            class="form-input">
+        </div>
+      </div>
+
+      <div class="table-container">
+        <div class="table-actions">
+          <button type="button" class="btn-primary" (click)="addNewRow()">
+            Ny (New)
+          </button>
+          <button type="button" class="btn-primary" (click)="insertRow()">
+            Sett inn linje (Insert Line)
+          </button>
+        </div>
+        
+        <table class="eliminations-table">
+          <thead>
+            <tr *ngIf="eliminationType === 'eliminations'">
+              <th>Text (Tekst)</th>
+              <th>From Account (Fra konto)</th>
+              <th>Company (Selskap)</th>
+              <th>To Account (Til konto)</th>
+              <th *ngIf="restrictPostings">Share %</th>
+              <th *ngIf="restrictPostings">From Period</th>
+              <th *ngIf="restrictPostings">From Year</th>
+              <th *ngIf="restrictPostings">To Period</th>
+              <th *ngIf="restrictPostings">To Year</th>
+              <th>Actions</th>
+            </tr>
+            <tr *ngIf="eliminationType === 'recurring'">
+              <th>Nr (No.)</th>
+              <th>Per (Period)</th>
+              <th>Beløp (Amount)</th>
+              <th>Debet (Debit)</th>
+              <th>Selskap (Company)</th>
+              <th>Kredit (Credit)</th>
+              <th>Selskap (Company)</th>
+              <th>Tekst (Text)</th>
+              <th>Actions</th>
+            </tr>
+            <tr *ngIf="eliminationType === 'eliminationsDim'">
+              <th>Fra konto (From Account)</th>
+              <th>Til konto (To Account)</th>
+              <th>Dim (Dimension)</th>
+              <th>ID (ID)</th>
+              <th>Navn (Name)</th>
+              <th>Konto (Account)</th>
+              <th>Selskap (Company)</th>
+              <th>Navn (Name)</th>
+              <th>Actions</th>
+            </tr>
+            <tr *ngIf="eliminationType === 'eliminationsDim2'">
+              <th>Fra konto (From Account)</th>
+              <th>Dim (Dimension 1)</th>
+              <th>ID (ID 1)</th>
+              <th>Dim2 (Dimension 2)</th>
+              <th>ID2 (ID 2)</th>
+              <th>Dim3 (Dimension 3)</th>
+              <th>ID3 (ID 3)</th>
+              <th>Konto (Account To)</th>
+              <th>Selskap (Company To)</th>
+              <th>Dim2 (Dimension 2 To)</th>
+              <th>ID2 (ID 2 To)</th>
+              <th>Dim3 (Dimension 3 To)</th>
+              <th>ID3 (ID 3 To)</th>
+              <th *ngIf="restrictPostings">% (Share %)</th>
+              <th *ngIf="restrictPostings">Fra Per (From Period)</th>
+              <th *ngIf="restrictPostings">Fra År (From Year)</th>
+              <th *ngIf="restrictPostings">Til Per (To Period)</th>
+              <th *ngIf="restrictPostings">Til År (To Year)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Eliminations table rows -->
+            <ng-container *ngFor="let element of dataSource.data; let i = index">
+              <tr *ngIf="eliminationType === 'eliminations'">
+                <td>
+                  <ng-container *ngIf="element.isNew; else textDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.text"
+                      class="form-input no-padding"
+                      placeholder="Text (Tekst)" />
+                  </ng-container>
+                  <ng-template #textDisplay>{{ element.text }}</ng-template>
+                </td>
+                <td>
+                  <select 
+                    [id]="'fromAccount' + i"
+                    [(ngModel)]="element.fromAccount"
+                    class="form-select">
+                    <option value="">Select Account</option>
+                    <option value="1001">1001 - Revenue Account</option>
+                    <option value="1002">1002 - Cost of Sales</option>
+                    <option value="1003">1003 - Operating Expenses</option>
+                    <option value="1004">1004 - Financial Income</option>
+                    <option value="1005">1005 - Financial Expenses</option>
+                    <option value="2000">2000 - Share Capital</option>
+                    <option value="2001">2001 - Cash and Bank</option>
+                    <option value="2002">2002 - Accounts Receivable</option>
+                    <option value="2003">2003 - Inventory</option>
+                    <option value="2004">2004 - Fixed Assets</option>
+                    <option value="2005">2005 - Accounts Payable</option>
+                    <option value="2006">2006 - Loans and Borrowings</option>
+                    <option value="2007">2007 - Equity</option>
+                    <option value="2008">2008 - Retained Earnings</option>
+                    <option value="2050">2050 - Annen egenkapital</option>
+                    <option value="3000">3000 - Intercompany Receivable</option>
+                    <option value="3050">3050 - Intercompany Payable</option>
+                    <option value="4000">4000 - Dividend Income</option>
+                    <option value="4050">4050 - Dividend Expense</option>
+                    <option value="5000">5000 - Sales Revenue</option>
+                    <option value="5050">5050 - Cost of Sales</option>
+                    <option value="6000">6000 - Management Fee Income</option>
+                    <option value="6050">6050 - Management Fee Expense</option>
+                  </select>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else companyDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.company"
+                      class="form-input no-padding"
+                      placeholder="Company (Selskap)" />
+                  </ng-container>
+                  <ng-template #companyDisplay>{{ element.company }}</ng-template>
+                </td>
+                <td>
+                  <select 
+                    [id]="'toAccount' + i"
+                    [(ngModel)]="element.toAccount"
+                    class="form-select">
+                    <option value="">Select Account</option>
+                    <option value="1001">1001 - Revenue Account</option>
+                    <option value="1002">1002 - Cost of Sales</option>
+                    <option value="1003">1003 - Operating Expenses</option>
+                    <option value="1004">1004 - Financial Income</option>
+                    <option value="1005">1005 - Financial Expenses</option>
+                    <option value="2000">2000 - Share Capital</option>
+                    <option value="2001">2001 - Cash and Bank</option>
+                    <option value="2002">2002 - Accounts Receivable</option>
+                    <option value="2003">2003 - Inventory</option>
+                    <option value="2004">2004 - Fixed Assets</option>
+                    <option value="2005">2005 - Accounts Payable</option>
+                    <option value="2006">2006 - Loans and Borrowings</option>
+                    <option value="2007">2007 - Equity</option>
+                    <option value="2008">2008 - Retained Earnings</option>
+                    <option value="2050">2050 - Annen egenkapital</option>
+                    <option value="3000">3000 - Intercompany Receivable</option>
+                    <option value="3050">3050 - Intercompany Payable</option>
+                    <option value="4000">4000 - Dividend Income</option>
+                    <option value="4050">4050 - Dividend Expense</option>
+                    <option value="5000">5000 - Sales Revenue</option>
+                    <option value="5050">5050 - Cost of Sales</option>
+                    <option value="6000">6000 - Management Fee Income</option>
+                    <option value="6050">6050 - Management Fee Expense</option>
+                  </select>
+                </td>
+                <td *ngIf="restrictPostings">
+                  <ng-container *ngIf="element.isNew; else sharePercentageDisplay">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.sharePercentage"
+                      class="form-input no-padding"
+                      placeholder="%"
+                      min="0"
+                      max="100"
+                      step="0.01" />
+                  </ng-container>
+                  <ng-template #sharePercentageDisplay>{{ element.sharePercentage }}%</ng-template>
+                </td>
+                <td *ngIf="restrictPostings">
+                  <ng-container *ngIf="element.isNew; else fromPeriodDisplay">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.fromPeriod"
+                      class="form-input no-padding"
+                      placeholder="MM"
+                      min="1"
+                      max="12" />
+                  </ng-container>
+                  <ng-template #fromPeriodDisplay>{{ element.fromPeriod }}</ng-template>
+                </td>
+                <td *ngIf="restrictPostings">
+                  <ng-container *ngIf="element.isNew; else fromYearDisplay">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.fromYear"
+                      class="form-input no-padding"
+                      placeholder="YYYY"
+                      min="1900"
+                      max="2100" />
+                  </ng-container>
+                  <ng-template #fromYearDisplay>{{ element.fromYear }}</ng-template>
+                </td>
+                <td *ngIf="restrictPostings">
+                  <ng-container *ngIf="element.isNew; else toPeriodDisplay">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.toPeriod"
+                      class="form-input no-padding"
+                      placeholder="MM"
+                      min="1"
+                      max="12" />
+                  </ng-container>
+                  <ng-template #toPeriodDisplay>{{ element.toPeriod }}</ng-template>
+                </td>
+                <td *ngIf="restrictPostings">
+                  <ng-container *ngIf="element.isNew; else toYearDisplay">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.toYear"
+                      class="form-input no-padding"
+                      placeholder="YYYY"
+                      min="1900"
+                      max="2100" />
+                  </ng-container>
+                  <ng-template #toYearDisplay>{{ element.toYear }}</ng-template>
+                </td>
+                <td class="actions-cell">
+                  <div class="context-menu-container">
+                    <button 
+                      type="button" 
+                      class="btn-actions"
+                      (click)="toggleContextMenu(i)"
+                      (contextmenu)="$event.preventDefault(); toggleContextMenu(i)">
+                      ⋯
+                    </button>
+                    <div 
+                      class="context-menu" 
+                      [hidden]="!element.showContextMenu"
+                      (click)="$event.stopPropagation()">
+                      <button 
+                        type="button" 
+                        class="context-menu-item"
+                        (click)="deleteRow(i)">
+                        Slett (Delete)
+                      </button>
+                      <button 
+                        type="button" 
+                        class="context-menu-item"
+                        (click)="copyToMultipleCompanies(i)">
+                        Kopier til flere firma (Copy to Multiple Companies)
+                      </button>
+                      <button 
+                        type="button" 
+                        class="context-menu-item"
+                        (click)="copyToAllGroupCompanies(i)">
+                        Kopier til alle selskap i konsernet (Copy to All Group Companies)
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              
+              <!-- Recurring table rows -->
+              <tr *ngIf="eliminationType === 'recurring'">
+                <td>
+                  <ng-container *ngIf="element.isNew; else nrDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.nr"
+                      class="form-input no-padding"
+                      placeholder="Nr" />
+                  </ng-container>
+                  <ng-template #nrDisplay>{{ element.nr }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else perDisplay">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.per"
+                      class="form-input no-padding"
+                      placeholder="Per"
+                      min="1"
+                      max="12" />
+                  </ng-container>
+                  <ng-template #perDisplay>{{ element.per }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else belopDisplay">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.belop"
+                      class="form-input no-padding"
+                      placeholder="Beløp"
+                      step="0.01" />
+                  </ng-container>
+                  <ng-template #belopDisplay>{{ element.belop }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else debetDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.debet"
+                      class="form-input no-padding"
+                      placeholder="Debet" />
+                  </ng-container>
+                  <ng-template #debetDisplay>{{ element.debet }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else debetSelskapDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.debetSelskap"
+                      class="form-input no-padding"
+                      placeholder="Selskap" />
+                  </ng-container>
+                  <ng-template #debetSelskapDisplay>{{ element.debetSelskap }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else kreditDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.kredit"
+                      class="form-input no-padding"
+                      placeholder="Kredit" />
+                  </ng-container>
+                  <ng-template #kreditDisplay>{{ element.kredit }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else kreditSelskapDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.kreditSelskap"
+                      class="form-input no-padding"
+                      placeholder="Selskap" />
+                  </ng-container>
+                  <ng-template #kreditSelskapDisplay>{{ element.kreditSelskap }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else tekstDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.tekst"
+                      class="form-input no-padding"
+                      placeholder="Tekst" />
+                  </ng-container>
+                  <ng-template #tekstDisplay>{{ element.tekst }}</ng-template>
+                </td>
+                <td class="actions-cell">
+                  <div class="context-menu-container">
+                    <button 
+                      type="button" 
+                      class="btn-actions"
+                      (click)="toggleContextMenu(i)"
+                      (contextmenu)="$event.preventDefault(); toggleContextMenu(i)">
+                      ⋯
+                    </button>
+                    <div 
+                      class="context-menu" 
+                      [hidden]="!element.showContextMenu"
+                      (click)="$event.stopPropagation()">
+                      <button 
+                        type="button" 
+                        class="context-menu-item"
+                        (click)="deleteRow(i)">
+                        Slett (Delete)
+                      </button>
+                      <button 
+                        type="button" 
+                        class="context-menu-item"
+                        (click)="copyToMultipleCompanies(i)">
+                        Kopier til flere firma (Copy to Multiple Companies)
+                      </button>
+                      <button 
+                        type="button" 
+                        class="context-menu-item"
+                        (click)="copyToAllGroupCompanies(i)">
+                        Kopier til alle selskap i konsernet (Copy to All Group Companies)
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              
+              <!-- Dimension elimination table rows -->
+              <tr *ngIf="eliminationType === 'eliminationsDim'">
+                <td>
+                  <ng-container *ngIf="element.isNew; else fraKontoDisplay">
+                    <select 
+                      [(ngModel)]="element.fraKonto"
+                      class="form-select">
+                      <option value="">Select Account</option>
+                      <option value="1001">1001 - Revenue Account</option>
+                      <option value="1002">1002 - Cost of Sales</option>
+                      <option value="1003">1003 - Operating Expenses</option>
+                      <option value="1004">1004 - Financial Income</option>
+                      <option value="1005">1005 - Financial Expenses</option>
+                      <option value="2000">2000 - Share Capital</option>
+                      <option value="2001">2001 - Cash and Bank</option>
+                      <option value="2002">2002 - Accounts Receivable</option>
+                      <option value="2003">2003 - Inventory</option>
+                      <option value="2004">2004 - Fixed Assets</option>
+                      <option value="2005">2005 - Accounts Payable</option>
+                      <option value="2006">2006 - Loans and Borrowings</option>
+                      <option value="2007">2007 - Equity</option>
+                      <option value="2008">2008 - Retained Earnings</option>
+                      <option value="2050">2050 - Annen egenkapital</option>
+                      <option value="3000">3000 - Intercompany Receivable</option>
+                      <option value="3050">3050 - Intercompany Payable</option>
+                      <option value="4000">4000 - Dividend Income</option>
+                      <option value="4050">4050 - Dividend Expense</option>
+                      <option value="5000">5000 - Sales Revenue</option>
+                      <option value="5050">5050 - Cost of Sales</option>
+                      <option value="6000">6000 - Management Fee Income</option>
+                      <option value="6050">6050 - Management Fee Expense</option>
+                    </select>
+                  </ng-container>
+                  <ng-template #fraKontoDisplay>{{ element.fraKonto }} - {{ element.fraKontoName }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else tilKontoDisplay">
+                    <select 
+                      [(ngModel)]="element.tilKonto"
+                      class="form-select">
+                      <option value="">Select Account</option>
+                      <option value="1001">1001 - Revenue Account</option>
+                      <option value="1002">1002 - Cost of Sales</option>
+                      <option value="1003">1003 - Operating Expenses</option>
+                      <option value="1004">1004 - Financial Income</option>
+                      <option value="1005">1005 - Financial Expenses</option>
+                      <option value="2000">2000 - Share Capital</option>
+                      <option value="2001">2001 - Cash and Bank</option>
+                      <option value="2002">2002 - Accounts Receivable</option>
+                      <option value="2003">2003 - Inventory</option>
+                      <option value="2004">2004 - Fixed Assets</option>
+                      <option value="2005">2005 - Accounts Payable</option>
+                      <option value="2006">2006 - Loans and Borrowings</option>
+                      <option value="2007">2007 - Equity</option>
+                      <option value="2008">2008 - Retained Earnings</option>
+                      <option value="2050">2050 - Annen egenkapital</option>
+                      <option value="3000">3000 - Intercompany Receivable</option>
+                      <option value="3050">3050 - Intercompany Payable</option>
+                      <option value="4000">4000 - Dividend Income</option>
+                      <option value="4050">4050 - Dividend Expense</option>
+                      <option value="5000">5000 - Sales Revenue</option>
+                      <option value="5050">5050 - Cost of Sales</option>
+                      <option value="6000">6000 - Management Fee Income</option>
+                      <option value="6050">6050 - Management Fee Expense</option>
+                    </select>
+                  </ng-container>
+                  <ng-template #tilKontoDisplay>{{ element.tilKonto }} - {{ element.tilKontoName }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else dimDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.dim"
+                      class="form-input no-padding"
+                      placeholder="Dim" />
+                  </ng-container>
+                  <ng-template #dimDisplay>{{ element.dim }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else eliminationIdDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.eliminationId"
+                      class="form-input no-padding"
+                      placeholder="ID" />
+                  </ng-container>
+                  <ng-template #eliminationIdDisplay>{{ element.eliminationId }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else navnDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.navn"
+                      class="form-input no-padding"
+                      placeholder="Navn" />
+                  </ng-container>
+                  <ng-template #navnDisplay>{{ element.navn }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else kontoDisplay">
+                    <select 
+                      [(ngModel)]="element.konto"
+                      class="form-select">
+                      <option value="">Select Account</option>
+                      <option value="1001">1001 - Revenue Account</option>
+                      <option value="1002">1002 - Cost of Sales</option>
+                      <option value="1003">1003 - Operating Expenses</option>
+                      <option value="1004">1004 - Financial Income</option>
+                      <option value="1005">1005 - Financial Expenses</option>
+                      <option value="2000">2000 - Share Capital</option>
+                      <option value="2001">2001 - Cash and Bank</option>
+                      <option value="2002">2002 - Accounts Receivable</option>
+                      <option value="2003">2003 - Inventory</option>
+                      <option value="2004">2004 - Fixed Assets</option>
+                      <option value="2005">2005 - Accounts Payable</option>
+                      <option value="2006">2006 - Loans and Borrowings</option>
+                      <option value="2007">2007 - Equity</option>
+                      <option value="2008">2008 - Retained Earnings</option>
+                      <option value="2050">2050 - Annen egenkapital</option>
+                      <option value="3000">3000 - Intercompany Receivable</option>
+                      <option value="3050">3050 - Intercompany Payable</option>
+                      <option value="4000">4000 - Dividend Income</option>
+                      <option value="4050">4050 - Dividend Expense</option>
+                      <option value="5000">5000 - Sales Revenue</option>
+                      <option value="5050">5050 - Cost of Sales</option>
+                      <option value="6000">6000 - Management Fee Income</option>
+                      <option value="6050">6050 - Management Fee Expense</option>
+                    </select>
+                  </ng-container>
+                  <ng-template #kontoDisplay>{{ element.konto }} - {{ element.kontoName }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else selskapDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.selskap"
+                      class="form-input no-padding"
+                      placeholder="Selskap" />
+                  </ng-container>
+                  <ng-template #selskapDisplay>{{ element.selskap }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else navnToDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.navnTo"
+                      class="form-input no-padding"
+                      placeholder="Navn" />
+                  </ng-container>
+                  <ng-template #navnToDisplay>{{ element.navnTo }}</ng-template>
+                </td>
+                <td class="actions-cell">
+                  <div class="context-menu-container">
+                    <button 
+                      type="button" 
+                      class="btn-actions"
+                      (click)="toggleContextMenu(i)"
+                      (contextmenu)="$event.preventDefault(); toggleContextMenu(i)">
+                      ⋯
+                    </button>
+                    <div 
+                      class="context-menu" 
+                      [hidden]="!element.showContextMenu"
+                      (click)="$event.stopPropagation()">
+                      <button 
+                        type="button" 
+                        class="context-menu-item"
+                        (click)="deleteRow(i)">
+                        Slett (Delete)
+                      </button>
+                      <button 
+                        type="button" 
+                        class="context-menu-item"
+                        (click)="copyToMultipleCompanies(i)">
+                        Kopier til flere firma (Copy to Multiple Companies)
+                      </button>
+                      <button 
+                        type="button" 
+                        class="context-menu-item"
+                        (click)="copyToAllGroupCompanies(i)">
+                        Kopier til alle selskap i konsernet (Copy to All Group Companies)
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              
+              <!-- Dimension elimination table rows -->
+              <tr *ngIf="eliminationType === 'eliminationsDim2'">
+                <td>
+                  <ng-container *ngIf="element.isNew; else fraKontoDisplay">
+                    <select 
+                      [(ngModel)]="element.fraKonto"
+                      class="form-select">
+                      <option value="">Select Account</option>
+                      <option value="1001">1001 - Revenue Account</option>
+                      <option value="1002">1002 - Cost of Sales</option>
+                      <option value="1003">1003 - Operating Expenses</option>
+                      <option value="1004">1004 - Financial Income</option>
+                      <option value="1005">1005 - Financial Expenses</option>
+                      <option value="2000">2000 - Share Capital</option>
+                      <option value="2001">2001 - Cash and Bank</option>
+                      <option value="2002">2002 - Accounts Receivable</option>
+                      <option value="2003">2003 - Inventory</option>
+                      <option value="2004">2004 - Fixed Assets</option>
+                      <option value="2005">2005 - Accounts Payable</option>
+                      <option value="2006">2006 - Loans and Borrowings</option>
+                      <option value="2007">2007 - Equity</option>
+                      <option value="2008">2008 - Retained Earnings</option>
+                      <option value="2050">2050 - Annen egenkapital</option>
+                      <option value="3000">3000 - Intercompany Receivable</option>
+                      <option value="3050">3050 - Intercompany Payable</option>
+                      <option value="4000">4000 - Dividend Income</option>
+                      <option value="4050">4050 - Dividend Expense</option>
+                      <option value="5000">5000 - Sales Revenue</option>
+                      <option value="5050">5050 - Cost of Sales</option>
+                      <option value="6000">6000 - Management Fee Income</option>
+                      <option value="6050">6050 - Management Fee Expense</option>
+                    </select>
+                  </ng-container>
+                  <ng-template #fraKontoDisplay>{{ element.fraKonto }} - {{ element.fraKontoName }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else dimDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.dim"
+                      class="form-input no-padding"
+                      placeholder="Dim" />
+                  </ng-container>
+                  <ng-template #dimDisplay>{{ element.dim }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else id1Display">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.id1"
+                      class="form-input no-padding"
+                      placeholder="ID1" />
+                  </ng-container>
+                  <ng-template #id1Display>{{ element.id1 }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else dim2Display">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.dim2"
+                      class="form-input no-padding"
+                      placeholder="Dim2" />
+                  </ng-container>
+                  <ng-template #dim2Display>{{ element.dim2 }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else id2Display">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.id2"
+                      class="form-input no-padding"
+                      placeholder="ID2" />
+                  </ng-container>
+                  <ng-template #id2Display>{{ element.id2 }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else dim3Display">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.dim3"
+                      class="form-input no-padding"
+                      placeholder="Dim3" />
+                  </ng-container>
+                  <ng-template #dim3Display>{{ element.dim3 }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else id3Display">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.id3"
+                      class="form-input no-padding"
+                      placeholder="ID3" />
+                  </ng-container>
+                  <ng-template #id3Display>{{ element.id3 }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else kontoDisplay">
+                    <select 
+                      [(ngModel)]="element.konto"
+                      class="form-select">
+                      <option value="">Select Account</option>
+                      <option value="1001">1001 - Revenue Account</option>
+                      <option value="1002">1002 - Cost of Sales</option>
+                      <option value="1003">1003 - Operating Expenses</option>
+                      <option value="1004">1004 - Financial Income</option>
+                      <option value="1005">1005 - Financial Expenses</option>
+                      <option value="2000">2000 - Share Capital</option>
+                      <option value="2001">2001 - Cash and Bank</option>
+                      <option value="2002">2002 - Accounts Receivable</option>
+                      <option value="2003">2003 - Inventory</option>
+                      <option value="2004">2004 - Fixed Assets</option>
+                      <option value="2005">2005 - Accounts Payable</option>
+                      <option value="2006">2006 - Loans and Borrowings</option>
+                      <option value="2007">2007 - Equity</option>
+                      <option value="2008">2008 - Retained Earnings</option>
+                      <option value="2050">2050 - Annen egenkapital</option>
+                      <option value="3000">3000 - Intercompany Receivable</option>
+                      <option value="3050">3050 - Intercompany Payable</option>
+                      <option value="4000">4000 - Dividend Income</option>
+                      <option value="4050">4050 - Dividend Expense</option>
+                      <option value="5000">5000 - Sales Revenue</option>
+                      <option value="5050">5050 - Cost of Sales</option>
+                      <option value="6000">6000 - Management Fee Income</option>
+                      <option value="6050">6050 - Management Fee Expense</option>
+                    </select>
+                  </ng-container>
+                  <ng-template #kontoDisplay>{{ element.konto }} - {{ element.kontoName }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else selskapDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.selskap"
+                      class="form-input no-padding"
+                      placeholder="Selskap" />
+                  </ng-container>
+                  <ng-template #selskapDisplay>{{ element.selskap }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else dim2ToDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.dim2To"
+                      class="form-input no-padding"
+                      placeholder="Dim2" />
+                  </ng-container>
+                  <ng-template #dim2ToDisplay>{{ element.dim2To }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else eliminationIdToDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.eliminationIdTo"
+                      class="form-input no-padding"
+                      placeholder="ID" />
+                  </ng-container>
+                  <ng-template #eliminationIdToDisplay>{{ element.eliminationIdTo }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else dim3ToDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.dim3To"
+                      class="form-input no-padding"
+                      placeholder="Dim3" />
+                  </ng-container>
+                  <ng-template #dim3ToDisplay>{{ element.dim3To }}</ng-template>
+                </td>
+                <td>
+                  <ng-container *ngIf="element.isNew; else eliminationId3ToDisplay">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.eliminationId3To"
+                      class="form-input no-padding"
+                      placeholder="ID3" />
+                  </ng-container>
+                  <ng-template #eliminationId3ToDisplay>{{ element.eliminationId3To }}</ng-template>
+                </td>
+                <td *ngIf="restrictPostings">
+                  <ng-container *ngIf="element.isNew; else sharePercentageDisplay">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.sharePercentage"
+                      class="form-input no-padding"
+                      placeholder="%"
+                      min="0"
+                      max="100"
+                      step="0.01" />
+                  </ng-container>
+                  <ng-template #sharePercentageDisplay>{{ element.sharePercentage }}%</ng-template>
+                </td>
+                <td *ngIf="restrictPostings">
+                  <ng-container *ngIf="element.isNew; else fromPeriodDisplay">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.fromPeriod"
+                      class="form-input no-padding"
+                      placeholder="MM"
+                      min="1"
+                      max="12" />
+                  </ng-container>
+                  <ng-template #fromPeriodDisplay>{{ element.fromPeriod }}</ng-template>
+                </td>
+                <td *ngIf="restrictPostings">
+                  <ng-container *ngIf="element.isNew; else fromYearDisplay">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.fromYear"
+                      class="form-input no-padding"
+                      placeholder="YYYY"
+                      min="1900"
+                      max="2100" />
+                  </ng-container>
+                  <ng-template #fromYearDisplay>{{ element.fromYear }}</ng-template>
+                </td>
+                <td *ngIf="restrictPostings">
+                  <ng-container *ngIf="element.isNew; else toPeriodDisplay">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.toPeriod"
+                      class="form-input no-padding"
+                      placeholder="MM"
+                      min="1"
+                      max="12" />
+                  </ng-container>
+                  <ng-template #toPeriodDisplay>{{ element.toPeriod }}</ng-template>
+                </td>
+                <td *ngIf="restrictPostings">
+                  <ng-container *ngIf="element.isNew; else toYearDisplay">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.toYear"
+                      class="form-input no-padding"
+                      placeholder="YYYY"
+                      min="1900"
+                      max="2100" />
+                  </ng-container>
+                  <ng-template #toYearDisplay>{{ element.toYear }}</ng-template>
+                </td>
+                <td class="actions-cell">
+                  <div class="context-menu-container">
+                    <button 
+                      type="button" 
+                      class="btn-actions"
+                      (click)="toggleContextMenu(i)"
+                      (contextmenu)="$event.preventDefault(); toggleContextMenu(i)">
+                      ⋯
+                    </button>
+                    <div 
+                      class="context-menu" 
+                      [hidden]="!element.showContextMenu"
+                      (click)="$event.stopPropagation()">
+                      <button 
+                        type="button" 
+                        class="context-menu-item"
+                        (click)="deleteRow(i)">
+                        Slett (Delete)
+                      </button>
+                      <button 
+                        type="button" 
+                        class="context-menu-item"
+                        (click)="copyToMultipleCompanies(i)">
+                        Kopier til flere firma (Copy to Multiple Companies)
+                      </button>
+                      <button 
+                        type="button" 
+                        class="context-menu-item"
+                        (click)="copyToAllGroupCompanies(i)">
+                        Kopier til alle selskap i konsernet (Copy to All Group Companies)
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+        
+        <div class="pagination">
+          <div class="pagination-info">
+            Showing {{ (currentPage * pageSize) + 1 }} 
+            to {{ Math.min((currentPage + 1) * pageSize, dataSource.data.length) }} 
+            of {{ dataSource.data.length }} entries
+          </div>
+          <div class="pagination-controls">
+            <button 
+              type="button" 
+              class="btn-secondary"
+              [disabled]="currentPage === 0"
+              (click)="previousPage()">
+              Previous
+            </button>
+            <span class="page-info">
+              Page {{ currentPage + 1 }} 
+              of {{ Math.ceil(dataSource.data.length / pageSize) }}
+            </span>
+            <button 
+              type="button" 
+              class="btn-secondary"
+              [disabled]="currentPage >= Math.ceil(dataSource.data.length / pageSize) - 1"
+              (click)="nextPage()">
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+
+    <!-- Bottom Bar -->
+    <div class="bottom-bar">
+      <div class="bottom-controls">
+        <label class="checkbox-container">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="restrictPostings"
+            (change)="onRestrictPostingsChange()"
+            class="form-checkbox">
+          <span class="checkmark"></span>
+          Begrense posteringer (Restrict Postings)
+        </label>
+        
+        <div class="radio-group">
+          <label class="radio-container">
+            <input 
+              type="radio" 
+              name="eliminationType" 
+              value="eliminations" 
+              [(ngModel)]="eliminationType"
+              checked
+              class="form-radio">
+            <span class="radiomark"></span>
+            Elimineringer (Eliminations)
+          </label>
+          
+          <label class="radio-container">
+            <input 
+              type="radio" 
+              name="eliminationType" 
+              value="recurring" 
+              [(ngModel)]="eliminationType"
+              class="form-radio">
+            <span class="radiomark"></span>
+            Gjentagende (Recurring)
+          </label>
+          
+          <label class="radio-container">
+            <input 
+              type="radio" 
+              name="eliminationType" 
+              value="eliminationsDim" 
+              [(ngModel)]="eliminationType"
+              class="form-radio">
+            <span class="radiomark"></span>
+            Elimineringer dim (Eliminations dim)
+          </label>
+          
+          <label class="radio-container">
+            <input 
+              type="radio" 
+              name="eliminationType" 
+              value="eliminationsDim2" 
+              [(ngModel)]="eliminationType"
+              class="form-radio">
+            <span class="radiomark"></span>
+            Elimineringer dim2 (Eliminations dim2)
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-actions">
+    <button type="button" class="btn-secondary" (click)="onCancel()">Cancel</button>
+    <button type="button" class="btn-primary" (click)="onSave()">Save</button>
+  </div>
+</div> 

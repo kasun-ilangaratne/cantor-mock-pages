@@ -1,0 +1,76 @@
+<div class="datterselskap-dialog-container">
+  <h2 mat-dialog-title class="dialog-title">Datterselskap</h2>
+  <div class="dialog-subtitle" *ngIf="year && month">{{ year }}.{{ formattedMonth }}</div>
+  
+  <mat-dialog-content class="dialog-content">
+    <div class="table-container">
+      <table class="datterselskap-table">
+        <thead>
+          <tr class="header-row">
+            <th class="navn-col">Navn</th>
+            <th *ngFor="let company of companies" class="company-col">{{ company }}</th>
+            <th class="eliminering-col">Eliminering</th>
+            <th class="sum-col">Sum</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of rows" class="data-row" [class.formula-row]="row.hasFormula">
+            <td class="navn-col">{{ row.navn }}</td>
+            <td 
+              *ngFor="let company of companies" 
+              class="company-col"
+              [class.editable]="isEditable(row, company)"
+              [class.editing]="row.isEditing && row.isEditing[company]"
+              (click)="isEditable(row, company) && !row.isEditing?.[company] && startEdit(row, company)">
+              <input 
+                *ngIf="isEditable(row, company) && row.isEditing && row.isEditing[company]"
+                type="number"
+                class="cell-input"
+                [value]="row.companies[company] || 0"
+                (blur)="saveEdit(row, company)"
+                (keydown.enter)="saveEdit(row, company)"
+                (keydown.escape)="cancelEdit(row, company)"
+                (input)="onCellValueChange(row, company, +$any($event.target).value)"
+                #cellInput
+                autofocus>
+              <span *ngIf="!isEditable(row, company) || !row.isEditing || !row.isEditing[company]">
+                {{ formatNumber(row.companies[company] || 0) }}
+              </span>
+            </td>
+            <td 
+              class="eliminering-col"
+              [class.editable]="isEditable(row, 'eliminering')"
+              [class.editing]="row.isEditing && row.isEditing['eliminering']"
+              (click)="isEditable(row, 'eliminering') && !row.isEditing?.['eliminering'] && startEdit(row, 'eliminering')">
+              <input 
+                *ngIf="isEditable(row, 'eliminering') && row.isEditing && row.isEditing['eliminering']"
+                type="number"
+                class="cell-input"
+                [value]="row.eliminering"
+                (blur)="saveEdit(row, 'eliminering')"
+                (keydown.enter)="saveEdit(row, 'eliminering')"
+                (keydown.escape)="cancelEdit(row, 'eliminering')"
+                (input)="onCellValueChange(row, 'eliminering', +$any($event.target).value)"
+                #elimInput
+                autofocus>
+              <span *ngIf="!isEditable(row, 'eliminering') || !row.isEditing || !row.isEditing['eliminering']">
+                {{ formatNumber(row.eliminering) }}
+              </span>
+            </td>
+            <td class="sum-col">{{ formatNumber(row.sum) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-excel" (click)="exportToExcel()">
+      <mat-icon>download</mat-icon>
+      Excel
+    </button>
+    <button type="button" class="btn-cancel" (click)="onCancel()">Avbryt</button>
+    <button type="button" class="btn-save" (click)="onSave()">Lagre</button>
+  </mat-dialog-actions>
+</div>
+

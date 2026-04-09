@@ -1,0 +1,124 @@
+<div class="counterparty-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>Result Unit (Resultatenhet) – Counterparty (Motpart)</h2>
+  </div>
+
+  <form [formGroup]="form" class="dialog-content">
+    <div class="form-section">
+      <div class="form-row">
+        <div class="form-field inline-field">
+          <label for="dimension">Elimination of entries linked to this dimension (Eliminering av poster tilknyttet denne dim)</label>
+          <div class="dropdown-checkbox-row">
+            <select 
+              id="dimension"
+              formControlName="dimension"
+              class="form-select">
+              <option *ngFor="let dim of dimensions" [value]="dim.value">
+                {{ dim.label }}
+              </option>
+            </select>
+            <div class="checkbox-field">
+              <input 
+                type="checkbox" 
+                id="unilateral"
+                formControlName="unilateral"
+                class="form-checkbox">
+              <label for="unilateral">Unilateral (Ensidig)</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-fields-row">
+        <div class="form-field">
+          <label for="additionalDimension">Additional dimension (Tilleggsdim)</label>
+          <select 
+            id="additionalDimension"
+            formControlName="additionalDimension"
+            class="form-select">
+            <option *ngFor="let dim of additionalDimensions" [value]="dim.value">
+              {{ dim.label }}
+            </option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="additionalDimension2">Additional dimension 2 (Tilleggsdim2)</label>
+          <select 
+            id="additionalDimension2"
+            formControlName="additionalDimension2"
+            class="form-select">
+            <option *ngFor="let dim of additionalDimensions" [value]="dim.value">
+              {{ dim.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-section">
+      <div class="table-header">
+        <h3>Company Data</h3>
+        <div class="filter-field inline-field">
+          <label for="filter">Filter</label>
+          <input 
+            type="text" 
+            id="filter"
+            (keyup)="applyFilter($event)" 
+            placeholder="Search companies"
+            class="form-input">
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="company-table">
+          <thead>
+            <tr>
+              <th>Company No. (Firmanr)</th>
+              <th>Company Name (Firmanavn)</th>
+              <th>ID (ID)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let element of dataSource.data">
+              <td>{{ element.companyNo }}</td>
+              <td>{{ element.companyName }}</td>
+              <td>{{ element.id }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="pagination">
+          <div class="pagination-info">
+            Showing {{ (dataSource.paginator?.pageIndex || 0) * (dataSource.paginator?.pageSize || 10) + 1 }} 
+            to {{ Math.min((dataSource.paginator?.pageIndex || 0 + 1) * (dataSource.paginator?.pageSize || 10), dataSource.data.length) }} 
+            of {{ dataSource.data.length }} entries
+          </div>
+          <div class="pagination-controls">
+            <button 
+              type="button" 
+              class="btn-secondary"
+              [disabled]="(dataSource.paginator?.pageIndex || 0) === 0"
+              (click)="previousPage()">
+              Previous
+            </button>
+            <span class="page-info">
+              Page {{ (dataSource.paginator?.pageIndex || 0) + 1 }} 
+              of {{ Math.ceil(dataSource.data.length / (dataSource.paginator?.pageSize || 10)) }}
+            </span>
+            <button 
+              type="button" 
+              class="btn-secondary"
+              [disabled]="(dataSource.paginator?.pageIndex || 0) >= Math.ceil(dataSource.data.length / (dataSource.paginator?.pageSize || 10)) - 1"
+              (click)="nextPage()">
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="dialog-actions">
+    <button type="button" class="btn-exception" (click)="onException()">Exception (Unntak)</button>
+  </div>
+</div> 

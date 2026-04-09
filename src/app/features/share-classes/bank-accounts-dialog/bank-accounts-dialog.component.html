@@ -1,0 +1,56 @@
+<div class="bank-accounts-dialog-container">
+  <h2 mat-dialog-title class="dialog-title">Bankkontoer ({{ getBankAccountsCount() }})</h2>
+  
+  <mat-dialog-content class="dialog-content">
+    <div class="bank-accounts-table-section">
+      <table class="bank-accounts-table">
+        <thead>
+          <tr>
+            <th>Valuta</th>
+            <th>Bankkonto</th>
+            <th>IBAN</th>
+            <th>Swift</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let account of bankAccounts; let i = index">
+            <td>
+              <input 
+                type="text" 
+                class="table-input"
+                [(ngModel)]="account.valuta"
+                placeholder="Valuta"
+                maxlength="3">
+            </td>
+            <td>
+              <input 
+                type="text" 
+                class="table-input"
+                [(ngModel)]="account.bankkonto"
+                placeholder="Bankkonto">
+            </td>
+            <td>
+              <input 
+                type="text" 
+                class="table-input"
+                [(ngModel)]="account.iban"
+                placeholder="IBAN">
+            </td>
+            <td>
+              <input 
+                type="text" 
+                class="table-input"
+                [(ngModel)]="account.swift"
+                placeholder="Swift">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-cancel" (click)="onCancel()">Avbryt</button>
+    <button type="button" class="btn-save" (click)="onSave()">Lagre</button>
+  </mat-dialog-actions>
+</div>

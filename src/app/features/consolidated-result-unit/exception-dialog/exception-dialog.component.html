@@ -1,0 +1,91 @@
+<div class="exception-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>Følgende konti motpartsberegnes ikke: (The following accounts are not included in counterparty calc.)</h2>
+  </div>
+
+  <div class="dialog-content">
+    <div class="table-section">
+      <div class="table-header">
+        <button 
+          type="button" 
+          class="btn-add" 
+          (click)="onAddAccount()">
+          + Legg til konto (Add Account)
+        </button>
+      </div>
+      <div class="table-container">
+        <table class="exception-table">
+          <thead>
+            <tr>
+              <th>Kontonr (Account No.)</th>
+              <th>Kontonavn (Account Name)</th>
+              <th>Handlinger (Actions)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let element of dataSource.data">
+              <td>
+                <ng-container *ngIf="element.isNew; else accountNoDisplay">
+                  <app-account-dropdown
+                    [selectedValue]="element.accountNo"
+                    (accountSelected)="onAccountChange(element, $event)"
+                    placeholder="Select Account">
+                  </app-account-dropdown>
+                </ng-container>
+                <ng-template #accountNoDisplay>{{ element.accountNo }}</ng-template>
+              </td>
+              <td>
+                <ng-container *ngIf="element.isNew; else accountNameDisplay">
+                  <input 
+                    type="text" 
+                    [(ngModel)]="element.accountName"
+                    class="form-input no-padding"
+                    placeholder="Account name will be auto-filled"
+                    readonly />
+                </ng-container>
+                <ng-template #accountNameDisplay>{{ element.accountName }}</ng-template>
+              </td>
+              <td>
+                <button 
+                  type="button" 
+                  class="btn-remove" 
+                  (click)="onRemoveAccount(element)"
+                  title="Fjern konto (Remove Account)">
+                  ×
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Confirmation Overlay -->
+<div class="confirmation-overlay" *ngIf="showConfirmDialog">
+  <div class="confirmation-dialog">
+    <div class="dialog-header">
+      <h2>Bekreft sletting (Confirm Deletion)</h2>
+    </div>
+    <div class="dialog-content">
+      <p *ngIf="elementToDelete">
+        Er du sikker på at du vil slette konto "{{ elementToDelete.accountName }}" ({{ elementToDelete.accountNo }})?
+      </p>
+    </div>
+    <div class="dialog-actions">
+      <button 
+        type="button"
+        class="btn-cancel"
+        (click)="onCancelDelete()">
+        Avbryt (Cancel)
+      </button>
+      <button 
+        type="button"
+        class="btn-confirm"
+        (click)="onConfirmDelete()">
+        Slett (Delete)
+      </button>
+    </div>
+  </div>
+</div> 

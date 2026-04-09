@@ -1,0 +1,50 @@
+<div class="valutaomregning-dialog-container">
+  <h2 mat-dialog-title class="dialog-title">Valutaomregning</h2>
+  
+  <mat-dialog-content class="dialog-content">
+    <table class="valutaomregning-table">
+      <thead>
+        <tr class="header-row">
+          <th colspan="3" class="empty-header"></th>
+          <th colspan="2" class="merged-header">Valutaomregning</th>
+          <th colspan="1" class="merged-header">Hittil i år</th>
+          <th colspan="1" class="merged-header">Valutaomregning</th>
+        </tr>
+        <tr class="column-header-row">
+          <th class="nr-col">Nr</th>
+          <th class="selskap-col">Selskap</th>
+          <th class="valuta-col">Valuta</th>
+          <th class="date-col">01.01.2025</th>
+          <th class="ek-col">EK</th>
+          <th class="res-col">RES</th>
+          <th class="date-col">30.11.2025</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of dataSource" class="data-row">
+          <td class="nr-col">{{ row.nr }}</td>
+          <td class="selskap-col">{{ row.selskap }}</td>
+          <td class="valuta-col">{{ row.valuta }}</td>
+          <td class="date-col">{{ formatNumber(row.date0101) }}</td>
+          <td class="ek-col">{{ formatNumber(row.ek) }}</td>
+          <td class="res-col">{{ formatNumber(row.res) }}</td>
+          <td class="date-col">{{ formatNumber(row.date3011) }}</td>
+        </tr>
+        <tr class="total-row">
+          <td class="nr-col"></td>
+          <td class="selskap-col"><strong>Total</strong></td>
+          <td class="valuta-col"></td>
+          <td class="date-col"></td>
+          <td class="ek-col"></td>
+          <td class="res-col"><strong>{{ formatNumber(totalRes) }}</strong></td>
+          <td class="date-col"><strong>{{ formatNumber(totalDate3011) }}</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-close" (click)="onClose()">Lukk</button>
+  </mat-dialog-actions>
+</div>
+

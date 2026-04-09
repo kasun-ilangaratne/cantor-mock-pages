@@ -1,0 +1,366 @@
+.shareholders-container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding: 20px;
+}
+
+// Header
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #1e40af;
+    }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    .header-info {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 14px;
+      color: #666;
+
+      .company {
+        font-weight: 500;
+        color: #333;
+      }
+
+      .year-select,
+      .month-select {
+        padding: 6px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        background-color: white;
+        font-size: 14px;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          border-color: #9ca3af;
+        }
+
+        &:focus {
+          outline: none;
+          border-color: #1e40af;
+          box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+        }
+      }
+    }
+  }
+}
+
+// Main Tabs
+.main-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0;
+  background-color: white;
+  border-radius: 8px 8px 0 0;
+  padding: 0 20px;
+  border-bottom: 1px solid #e5e7eb;
+
+  .tab {
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: #333;
+    }
+
+    &.active {
+      color: #1e40af;
+      border-bottom-color: #1e40af;
+    }
+  }
+}
+
+// Controls Row
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+
+  .add-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: #1e40af;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      background-color: #1e3a8a;
+    }
+  }
+
+  .search-container {
+    flex: 1;
+    max-width: 400px;
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      color: #9ca3af;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 12px 8px 40px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 14px;
+      background-color: white;
+      transition: all 0.2s ease;
+
+      &:focus {
+        outline: none;
+        border-color: #1e40af;
+        box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+      }
+    }
+  }
+
+  .filter-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+  }
+}
+
+// Table Container
+.table-container {
+  background-color: white;
+  border-radius: 0 0 8px 8px;
+  overflow-x: auto;
+}
+
+.shareholders-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead {
+    background-color: #f9fafb;
+    border-bottom: 2px solid #e5e7eb;
+
+    th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      white-space: nowrap;
+
+      &.sortable {
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+        padding-right: 32px;
+
+        &:hover {
+          background-color: #f3f4f6;
+        }
+
+        .sort-icon {
+          position: absolute;
+          right: 8px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+          color: #1e40af;
+        }
+      }
+
+      &.actions-col {
+        text-align: center;
+        width: 100px;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid #e5e7eb;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: #f9fafb;
+      }
+
+      td {
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #333;
+
+        .status-indicator {
+          display: inline-block;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          margin-right: 8px;
+          background-color: #9ca3af;
+
+          &.active {
+            background-color: #10b981;
+          }
+        }
+
+        .status-text {
+          margin-left: 8px;
+          font-size: 12px;
+          color: #666;
+        }
+
+        &.actions-col {
+          text-align: center;
+        }
+      }
+    }
+  }
+
+  tfoot {
+    background-color: #f9fafb;
+    border-top: 2px solid #e5e7eb;
+
+    .totals-row {
+      font-weight: 600;
+
+      &.warning {
+        color: #dc2626;
+      }
+
+      .totals-label {
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #333;
+      }
+
+      td {
+        padding: 12px 16px;
+        font-size: 14px;
+
+        &.warning {
+          color: #dc2626;
+        }
+      }
+    }
+  }
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  color: #666;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    background-color: #f3f4f6;
+    color: #1e40af;
+  }
+
+  & + .icon-btn {
+    margin-left: 4px;
+  }
+}
+
+// Footer Actions
+.footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 20px;
+  margin-top: 20px;
+
+  .save-btn {
+    min-width: 120px;
+    height: 40px;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 500;
+    background-color: #4b5563;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background-color: #374151;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}

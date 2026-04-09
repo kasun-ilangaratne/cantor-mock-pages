@@ -1,0 +1,963 @@
+<div class="shareholder-form-page">
+  <div class="page-header">
+    <button type="button" class="back-btn" (click)="onBack()">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Tilbake</span>
+    </button>
+    <div class="header-content">
+      <h2 class="page-title">{{ navn || 'Aksjonær' }}</h2>
+      <div class="shareholder-selector">
+        <div class="search-container">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input 
+            type="text"
+            class="search-input"
+            [(ngModel)]="shareholderSearchControl"
+            (input)="onShareholderSearchChange($any($event.target).value)"
+            (focus)="onSearchFocus()"
+            (click)="onSearchClick()"
+            [matAutocomplete]="auto"
+            #trigger="matAutocompleteTrigger"
+            placeholder="Søk"
+            autocomplete="off">
+          <mat-autocomplete 
+            #auto="matAutocomplete"
+            [displayWith]="displayShareholderFn"
+            (optionSelected)="onShareholderSelected($event.option.value)"
+            [panelWidth]="'auto'"
+            [autoActiveFirstOption]="false">
+            <mat-option *ngFor="let shareholder of filteredShareholders" [value]="shareholder">
+              <div class="shareholder-option">
+                <span class="shareholder-name">{{ shareholder.navn }}</span>
+                <span class="shareholder-id">{{ shareholder.personnrOrgNr }}</span>
+                <span class="shareholder-status" [class.active]="shareholder.status === 'Aktiv'">
+                  {{ shareholder.status }}
+                </span>
+              </div>
+            </mat-option>
+            <mat-option *ngIf="filteredShareholders.length === 0" disabled>
+              <span>Ingen resultater funnet</span>
+            </mat-option>
+          </mat-autocomplete>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-container">
+    <button 
+      type="button" 
+      class="tab" 
+      [class.active]="activeTab === 'basic'"
+      (click)="setActiveTab('basic')">
+      Basic Info
+    </button>
+    <button 
+      type="button" 
+      class="tab" 
+      [class.active]="activeTab === 'transaksjoner'"
+      (click)="setActiveTab('transaksjoner')">
+      Transaksjoner
+    </button>
+  </div>
+
+  <div class="page-content">
+    <!-- Tab 1: Basic Info -->
+    <div class="tab-content" *ngIf="activeTab === 'basic'">
+      <!-- Shareholder Type Selection -->
+      <div class="form-section">
+        <div class="form-group type-selector-group">
+          <label>Aksjonærtype</label>
+          <select class="form-input type-select" [(ngModel)]="shareholderType">
+            <option value="Selskap">Selskap</option>
+            <option value="Personlig">Personlig</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Identification & Address (Two-column layout) -->
+      <div class="form-section two-column">
+        <div class="column-left">
+          <div class="form-group">
+            <label>Organisasjonsnummer</label>
+            <div class="input-with-icon">
+              <input 
+                type="text" 
+                class="form-input"
+                [(ngModel)]="personnrOrgNr"
+                placeholder="Organisasjonsnummer">
+              <mat-icon 
+                class="lookup-icon" 
+                *ngIf="shareholderType === 'Selskap'"
+                (click)="onLookupCompany()"
+                title="Søk etter selskap">
+                search
+              </mat-icon>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Adresse</label>
+            <input 
+              type="text" 
+              class="form-input"
+              [(ngModel)]="adresse"
+              placeholder="Adresse">
+          </div>
+
+          <div class="form-group">
+            <label>Postnummer / -sted</label>
+            <div class="postal-input-group">
+              <input 
+                type="text" 
+                class="form-input"
+                [(ngModel)]="postnummer"
+                placeholder="Postnummer">
+              <span class="separator">/</span>
+              <input 
+                type="text" 
+                class="form-input"
+                [(ngModel)]="poststed"
+                placeholder="Poststed">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Kommune</label>
+            <select class="form-input" [(ngModel)]="kommune">
+              <option value="">Velg kommune</option>
+              <option *ngFor="let k of kommuner" [value]="k">{{ k }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Bankkonto</label>
+            <div class="input-with-button">
+              <input 
+                type="text" 
+                class="form-input"
+                [value]="getBankAccountsDisplayText()"
+                readonly
+                placeholder="Ingen bankkontoer registrert">
+              <button 
+                type="button"
+                class="details-btn"
+                (click)="openBankAccountsDialog()">
+                Detaljer
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="column-right">
+          <div class="form-group">
+            <label>Navn</label>
+            <input 
+              type="text" 
+              class="form-input"
+              [(ngModel)]="navn"
+              placeholder="Navn">
+          </div>
+
+          <div class="form-group">
+            <label>Telefon</label>
+            <input 
+              type="text" 
+              class="form-input"
+              [(ngModel)]="telefon"
+              placeholder="Telefon">
+          </div>
+
+          <div class="form-group">
+            <label>E-post</label>
+            <input 
+              type="email" 
+              class="form-input"
+              [(ngModel)]="epost"
+              placeholder="E-post">
+          </div>
+
+          <div class="form-group">
+            <label>Landkode</label>
+            <select class="form-input" [(ngModel)]="landkode">
+              <option *ngFor="let lk of landkoder" [value]="lk">
+                {{ lk }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bank Accounts Section - Hidden, moved to dialog -->
+      <div class="form-section bank-accounts-section" style="display: none;">
+        <div class="section-header" (click)="bankAccountsExpanded = !bankAccountsExpanded">
+          <h3>Bankkontoer ({{ getBankAccountsCount() }})</h3>
+          <mat-icon class="expand-icon" [class.expanded]="bankAccountsExpanded">expand_more</mat-icon>
+        </div>
+        
+        <div class="bank-accounts-content" *ngIf="bankAccountsExpanded">
+          <table class="bank-accounts-table">
+            <thead>
+              <tr>
+                <th>Valuta</th>
+                <th>Bankkonto</th>
+                <th>IBAN</th>
+                <th>Swift</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let account of bankAccounts; let i = index">
+                <td>
+                  <input 
+                    type="text" 
+                    class="table-input"
+                    [(ngModel)]="account.valuta"
+                    placeholder="Valuta"
+                    maxlength="3">
+                </td>
+                <td>
+                  <input 
+                    type="text" 
+                    class="table-input"
+                    [(ngModel)]="account.bankkonto"
+                    placeholder="Bankkonto">
+                </td>
+                <td>
+                  <input 
+                    type="text" 
+                    class="table-input"
+                    [(ngModel)]="account.iban"
+                    placeholder="IBAN">
+                </td>
+                <td>
+                  <input 
+                    type="text" 
+                    class="table-input"
+                    [(ngModel)]="account.swift"
+                    placeholder="Swift">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Share Classes Section - Moved from Aksjeklasser tab -->
+      <div class="form-section share-classes-section">
+        <h3>Aksjeklasser</h3>
+        <table class="share-classes-table">
+          <thead>
+            <tr>
+              <th>Aksjeklasse</th>
+              <th>Antall IB</th>
+              <th>Andel IB (%)</th>
+              <th>Antall UB</th>
+              <th>Andel UB (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let shareClass of shareClassBalances">
+              <td>{{ shareClass.shareClassName }}</td>
+              <td>
+                <input 
+                  type="number"
+                  class="table-input"
+                  [(ngModel)]="shareClass.antallIB"
+                  (ngModelChange)="onAntallIBChange(shareClass)"
+                  min="0">
+              </td>
+              <td class="readonly">{{ shareClass.andelIB.toFixed(2) }}</td>
+              <td class="readonly">{{ shareClass.antallUB }}</td>
+              <td class="readonly">{{ shareClass.andelUB.toFixed(2) }}</td>
+            </tr>
+            <tr class="total-row">
+              <td><strong>Total</strong></td>
+              <td class="readonly"><strong>{{ getTotalRow().antallIB }}</strong></td>
+              <td class="readonly"><strong>{{ getTotalRow().andelIB.toFixed(2) }}</strong></td>
+              <td class="readonly"><strong>{{ getTotalRow().antallUB }}</strong></td>
+              <td class="readonly"><strong>{{ getTotalRow().andelUB.toFixed(2) }}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab 2: Transaksjoner -->
+    <div class="tab-content" *ngIf="activeTab === 'transaksjoner'">
+      <!-- Top Row: Year, Filters, Balance -->
+      <div class="top-controls">
+        <div class="controls-left">
+          <div class="year-label">År: {{ year }}</div>
+          
+          <div class="share-class-filter">
+            <label class="filter-label">Velg aksjeklasser:</label>
+            <div class="share-class-chips">
+              <div class="chip" *ngFor="let sc of availableShareClasses">
+                <input 
+                  type="checkbox" 
+                  [checked]="isShareClassSelected(sc)"
+                  (change)="toggleShareClass(sc)"
+                  class="chip-checkbox">
+                <span class="chip-label">{{ sc }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="controls-right">
+          <div class="balance-summary">
+            <div class="balance-row">
+              <span class="balance-label">Inngående:</span>
+              <span class="balance-value">{{ incomingBalance }}</span>
+            </div>
+            <div class="balance-row">
+              <span class="balance-label">Endringer:</span>
+              <span class="balance-value" [class.positive]="changesBalance > 0" [class.negative]="changesBalance < 0">
+                {{ formatNumber(changesBalance) }}
+              </span>
+            </div>
+            <div class="balance-row">
+              <span class="balance-label">Utgående:</span>
+              <span class="balance-value">{{ outgoingBalance }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 1: Utbytte og tilbakebetaling -->
+      <div class="section dividends-section">
+        <div class="dividends-container" [class.with-detail]="isDividendDetailPanelOpen()">
+          <!-- Left Panel: Dividends Table -->
+          <div class="dividends-left-panel">
+            <div class="section-header">
+              <h3>Utbytte og tilbakebetaling</h3>
+              <div class="section-actions">
+                <button type="button" class="add-btn" (click)="openDividendDetailPanel()">
+                  <mat-icon>add</mat-icon>
+                  Legg til
+                </button>
+              </div>
+            </div>
+            
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Aksjeklasse</th>
+                  <th>Type</th>
+                  <th>Transaksjonstype</th>
+                  <th>Dato</th>
+                  <th>Beløp</th>
+                  <th class="actions-col">Handlinger</th>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container *ngFor="let dividend of dividendPayments">
+                  <tr *ngIf="isShareClassVisible(dividend.aksjeklasse)"
+                      [class.selected]="editingDividendId === dividend.id"
+                      (click)="editDividend(dividend)">
+                    <td>{{ dividend.aksjeklasse }}</td>
+                    <td>{{ dividend.type }}</td>
+                    <td [class.disabled]="dividend.type === 'Utbytte'">
+                      {{ dividend.transaksjonstype || '-' }}
+                    </td>
+                    <td>{{ dividend.dato }}</td>
+                    <td>{{ formatNumber(dividend.belop) }}</td>
+                    <td class="actions-col">
+                      <button 
+                        type="button" 
+                        class="icon-btn" 
+                        (click)="editDividend(dividend); $event.stopPropagation()" 
+                        title="Rediger">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button 
+                        type="button" 
+                        class="icon-btn" 
+                        (click)="deleteDividend(dividend); $event.stopPropagation()" 
+                        title="Slett">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </td>
+                  </tr>
+                </ng-container>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Right Panel: Dividend Detail Form -->
+          <div class="dividends-right-panel" *ngIf="isDividendDetailPanelOpen()">
+            <div class="detail-panel">
+              <div class="detail-header">
+                <h4>{{ editingDividendId ? 'Rediger' : 'Legg til' }} utbytte/tilbakebetaling</h4>
+                <button type="button" class="close-btn" (click)="closeDividendDetailPanel()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+
+              <div class="detail-content">
+                <!-- Type Selection Dropdown -->
+                <div class="field-group">
+                  <label>Type</label>
+                  <select 
+                    class="field-input" 
+                    [(ngModel)]="selectedDividendType"
+                    (ngModelChange)="selectDividendType($event)">
+                    <option [value]="null">Velg type</option>
+                    <option value="Utbytte">Utbytte for denne aksjonæren</option>
+                    <option value="Tilbakebetaling">Tilbakebetaling av tidligere innbetalt kapital</option>
+                  </select>
+                </div>
+
+                <!-- Utbytte Form Fields -->
+                <div *ngIf="selectedDividendType === 'Utbytte'" class="dividend-form">
+                  <div class="form-description">
+                    <p>Post 21 Utdelt skatterettslig utbytte til aksjonæren for denne aksjeklassen (kildeskatt er relevant for aksjonærer hjemmehørende i utlandet).</p>
+                  </div>
+                  
+                  <div class="field-group">
+                    <label>Utdelt utbytte (totalt)</label>
+                    <input type="number" class="field-input" [(ngModel)]="newDividend.utdeltUtbytteTotalt" min="0">
+                  </div>
+                  
+                  <div class="field-group">
+                    <label>Antall aksjer</label>
+                    <input type="number" class="field-input" [(ngModel)]="newDividend.antallAksjer" min="0">
+                  </div>
+                  
+                  <div class="field-group">
+                    <label>Tidspunkt</label>
+                    <input type="datetime-local" class="field-input" [(ngModel)]="newDividend.tidspunkt">
+                  </div>
+                  
+                  <div class="field-group">
+                    <label>Kildeskatt i %</label>
+                    <input type="number" class="field-input" [(ngModel)]="newDividend.kildeskattProsent" min="0" max="100" step="0.01">
+                  </div>
+                  
+                  <div class="field-group">
+                    <label>Kildeskatt i kroner</label>
+                    <input type="number" class="field-input" [(ngModel)]="newDividend.kildeskattKroner" min="0">
+                  </div>
+                  
+                  <div class="field-group">
+                    <label>Kildeskatt landkode</label>
+                    <input type="text" class="field-input" [(ngModel)]="newDividend.kildeskattLandkode" maxlength="2">
+                  </div>
+                  
+                  <div class="field-group checkbox-group">
+                    <label class="checkbox-label">
+                      <input type="checkbox" [(ngModel)]="newDividend.beholdeAksjelaan">
+                      Beholde aksjelån
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Tilbakebetaling Form Fields -->
+                <div *ngIf="selectedDividendType === 'Tilbakebetaling'" class="dividend-form">
+                  <div class="form-description">
+                    <p>Post 22 Tilbakebetaling av tidligere innbetalt kapital</p>
+                  </div>
+                  
+                  <div class="field-group">
+                    <label>Transaksjonstype</label>
+                    <select class="field-input" [(ngModel)]="newDividend.transaksjonstype">
+                      <option value="Kjøp">Kjøp</option>
+                      <option value="Salg">Salg</option>
+                    </select>
+                  </div>
+                  
+                  <div class="field-group">
+                    <label>Beløp</label>
+                    <input type="number" class="field-input" [(ngModel)]="newDividend.belop" min="0">
+                  </div>
+                  
+                  <div class="field-group">
+                    <label>Tidspunkt</label>
+                    <input type="datetime-local" class="field-input" [(ngModel)]="newDividend.tidspunkt">
+                  </div>
+                </div>
+
+                <div class="detail-footer-actions">
+                  <button type="button" class="cancel-btn" (click)="closeDividendDetailPanel()">Avbryt</button>
+                  <button type="button" class="save-btn" (click)="saveNewDividend()">Lagre</button>
+                  <button type="button" class="save-next-btn" (click)="saveAndNextDividend()">Lagre og neste</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Transaksjoner -->
+      <div class="section transactions-section">
+        <div class="transactions-container" [class.with-detail]="isTransactionDetailPanelOpen()">
+          <!-- Left Panel: Transactions Table -->
+          <div class="transactions-left-panel">
+            <div class="section-header">
+              <h3>Transaksjoner</h3>
+              <button type="button" class="add-btn" (click)="showTransactionAddMenu()">
+                <mat-icon>add</mat-icon>
+                Legg til
+              </button>
+            </div>
+            
+            <table class="data-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Transaksjon</th>
+              <th *ngIf="hasExpandedGroups()">Transaksjonstype</th>
+              <th *ngIf="hasExpandedGroups()">Dato</th>
+              <th>Antall</th>
+              <th class="actions-col" *ngIf="hasExpandedGroups()">Handlinger</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let group of getTransactionGroups()">
+              <!-- Group Header Row (Collapsed View) - Only show if multiple records -->
+              <tr *ngIf="group.transactions.length > 1"
+                  [class.group-header]="true" 
+                  [class.expanded]="isTransactionGroupExpanded(group.postingTypeId)">
+                <td>
+                  <button 
+                    type="button" 
+                    class="expand-btn"
+                    (click)="toggleTransactionGroup(group.postingTypeId)">
+                    <mat-icon>{{ isTransactionGroupExpanded(group.postingTypeId) ? 'remove' : 'add' }}</mat-icon>
+                  </button>
+                </td>
+                <td><strong>{{ group.postingTypeDescription }}</strong></td>
+                <td *ngIf="hasExpandedGroups()"></td>
+                <td *ngIf="hasExpandedGroups()"></td>
+                <td [class.positive]="group.totalAntall > 0" 
+                    [class.negative]="group.totalAntall < 0">
+                  <strong>{{ formatNumber(group.totalAntall) }}</strong>
+                </td>
+                <td class="actions-col" *ngIf="hasExpandedGroups()"></td>
+              </tr>
+              
+              <!-- Expanded Rows (Individual Transactions) -->
+              <!-- Show if group is expanded OR if there's only one transaction (no header shown) -->
+              <ng-container *ngIf="isTransactionGroupExpanded(group.postingTypeId) || group.transactions.length === 1">
+                <tr *ngFor="let transaction of group.transactions" 
+                    [class.editing]="transaction.isEditing"
+                    [class.group-item]="group.transactions.length > 1"
+                    [class.selected]="editingTransactionId === transaction.id"
+                    (click)="selectTransaction(transaction, $event)">
+                  <td></td>
+                  <td>{{ group.postingTypeDescription }}</td>
+                  <td>
+                    <select 
+                      *ngIf="transaction.isEditing" 
+                      class="table-input"
+                      [(ngModel)]="transaction.transaksjonstype">
+                      <option value="Kjøp">Kjøp</option>
+                      <option value="Salg">Salg</option>
+                    </select>
+                    <span *ngIf="!transaction.isEditing">{{ transaction.transaksjonstype }}</span>
+                  </td>
+                  <td>
+                    <input 
+                      *ngIf="transaction.isEditing" 
+                      type="date"
+                      class="table-input"
+                      [(ngModel)]="transaction.dato">
+                    <span *ngIf="!transaction.isEditing">{{ transaction.dato }}</span>
+                  </td>
+                  <td [class.positive]="transaction.antall > 0" 
+                      [class.negative]="transaction.antall < 0">
+                    <input 
+                      *ngIf="transaction.isEditing" 
+                      type="number"
+                      class="table-input"
+                      [(ngModel)]="transaction.antall">
+                    <span *ngIf="!transaction.isEditing">
+                      {{ formatNumber(transaction.antall) }}
+                    </span>
+                  </td>
+                  <td class="actions-col">
+                    <button 
+                      *ngIf="!transaction.isEditing"
+                      type="button" 
+                      class="icon-btn" 
+                      (click)="editTransaction(transaction)" 
+                      title="Rediger">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button 
+                      *ngIf="transaction.isEditing"
+                      type="button" 
+                      class="icon-btn save-btn" 
+                      (click)="saveTransaction(transaction)" 
+                      title="Lagre">
+                      <mat-icon>check</mat-icon>
+                    </button>
+                    <button 
+                      *ngIf="transaction.isEditing"
+                      type="button" 
+                      class="icon-btn cancel-btn" 
+                      (click)="cancelEditTransaction(transaction)" 
+                      title="Avbryt">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                    <button 
+                      *ngIf="!transaction.isEditing"
+                      type="button" 
+                      class="icon-btn" 
+                      (click)="deleteTransaction(transaction)" 
+                      title="Slett">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              </ng-container>
+            </ng-container>
+            
+            <!-- Summary Row -->
+            <tr class="summary-row">
+              <td colspan="2" class="summary-label">Sum endringer:</td>
+              <td *ngIf="hasExpandedGroups()"></td>
+              <td *ngIf="hasExpandedGroups()"></td>
+              <td class="summary-value" [class.positive]="getTransactionSum() > 0" [class.negative]="getTransactionSum() < 0">
+                {{ formatNumber(getTransactionSum()) }}
+              </td>
+              <td *ngIf="hasExpandedGroups()"></td>
+            </tr>
+          </tbody>
+        </table>
+          </div>
+
+          <!-- Right Panel: Transaction Detail Form -->
+          <div class="transactions-right-panel" *ngIf="isTransactionDetailPanelOpen()">
+            <div class="detail-header">
+              <h2 class="detail-title">
+                <span *ngIf="editingTransactionId">Rediger transaksjon</span>
+                <span *ngIf="!editingTransactionId && selectedPostingType">Post {{ selectedPostingType }}: {{ getSelectedPostingTypeName() }}</span>
+                <span *ngIf="!editingTransactionId && !selectedPostingType">Ny transaksjon</span>
+              </h2>
+              <button 
+                type="button" 
+                class="close-btn"
+                (click)="closeTransactionDetailPanel()"
+                aria-label="Close detail panel">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+            
+            <div class="detail-content">
+              <!-- Post Type Selection Dropdown -->
+              <div class="field-group">
+                <label>Post Type</label>
+                <select 
+                  class="field-input" 
+                  [(ngModel)]="selectedPostingType"
+                  (ngModelChange)="selectPostingType($event)">
+                  <option [value]="null">Velg post type</option>
+                  <option *ngFor="let postingType of postingTypes" [value]="postingType.id">
+                    Post {{ postingType.id }}: {{ postingType.shortName }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Post 23: Aksjer i tilgang -->
+              <div *ngIf="selectedPostingType === '23'" class="posting-form">
+                <div class="field-group">
+                  <label>Antall</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antall" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Type</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.type">
+                    <option value="Kjøp">Kjøp</option>
+                    <option value="Salg">Salg</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+                <div class="field-group">
+                  <label>Motpart</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.motpart" placeholder="Motpart">
+                </div>
+                <div class="field-group">
+                  <label>Anskaffelsesverdi</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.anskaffelsesverdi" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Givers/arvelaters f.nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.giversFnr">
+                </div>
+                <div class="field-group">
+                  <label>Givers org.nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.giversOrgNr">
+                </div>
+                <div class="field-group">
+                  <label>Aksjenr fra</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.aksjenrFra" min="1">
+                </div>
+                <div class="field-group">
+                  <label>Aksjenr til</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.aksjenrTil" min="1">
+                </div>
+              </div>
+
+              <!-- Post 24: Aksjer i tilgang ved omfordeling -->
+              <div *ngIf="selectedPostingType === '24'" class="posting-form">
+                <div class="field-group">
+                  <label>Antall</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antall" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Type</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.type">
+                    <option value="Splitt">Splitt</option>
+                    <option value="Spleis">Spleis</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+                <div class="field-group">
+                  <label>Motpart</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.motpart" placeholder="Motpart">
+                </div>
+                <div class="field-group">
+                  <label>Overd. selskap org.nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.overdSelskapOrgNr">
+                </div>
+                <div class="field-group">
+                  <label>ISIN (Overd. selsk.)</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.isinOverdSelsk">
+                </div>
+                <div class="field-group">
+                  <label>Aksjeklasse (Overd. selsk.)</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.aksjeklasseOverdSelsk">
+                    <option value="">Velg aksjeklasse</option>
+                    <option *ngFor="let sc of availableShareClasses" [value]="sc">{{ sc }}</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Overd. pålydende</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.overdPalyende" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Aksjenr fra</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.aksjenrFra" min="1">
+                </div>
+                <div class="field-group">
+                  <label>Aksjenr til</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.aksjenrTil" min="1">
+                </div>
+              </div>
+
+              <!-- Post 25: Aksjer i avgang -->
+              <div *ngIf="selectedPostingType === '25'" class="posting-form">
+                <div class="field-group">
+                  <label>Antall</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antall" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Type</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.type">
+                    <option value="Salg">Salg</option>
+                    <option value="Kjøp">Kjøp</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+                <div class="field-group">
+                  <label>Kommentar / motpart</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.kommentarMotpart" placeholder="Motpart">
+                </div>
+                <div class="field-group">
+                  <label>Vederlag totalt</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.vederlagTotalt" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Mottakers f.nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.mottakersFnr">
+                </div>
+                <div class="field-group">
+                  <label>Mottakers org.nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.mottakersOrgNr">
+                </div>
+                <div class="field-group">
+                  <label>Aksjenr fra</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.aksjenrFra" min="1">
+                </div>
+                <div class="field-group">
+                  <label>Aksjenr til</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.aksjenrTil" min="1">
+                </div>
+              </div>
+
+              <!-- Post 26: Aksjer i avgang ved omfordeling -->
+              <div *ngIf="selectedPostingType === '26'" class="posting-form">
+                <div class="field-group">
+                  <label>Antall</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.antall" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Type</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.type">
+                    <option value="Spleis">Spleis</option>
+                    <option value="Splitt">Splitt</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+                <div class="field-group">
+                  <label>Kommentar / motpart</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.kommentarMotpart" placeholder="Motpart">
+                </div>
+                <div class="field-group">
+                  <label>Overtakene selskaps org.nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.overtakeneSelskapsOrgNr">
+                </div>
+                <div class="field-group">
+                  <label>ISIN (Overt. selsk.)</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.isinOvertSelsk">
+                </div>
+                <div class="field-group">
+                  <label>Aksjeklasse (Overt. selsk.)</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.aksjeklasseOvertSelsk">
+                    <option value="">Velg aksjeklasse</option>
+                    <option *ngFor="let sc of availableShareClasses" [value]="sc">{{ sc }}</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Pålydende</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.palyende" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Aksjenr fra</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.aksjenrFra" min="1">
+                </div>
+                <div class="field-group">
+                  <label>Aksjenr til</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.aksjenrTil" min="1">
+                </div>
+              </div>
+
+              <!-- Post 27: Tilbakebetalt innbetalt aksjekapital -->
+              <div *ngIf="selectedPostingType === '27'" class="posting-form">
+                <div class="field-group">
+                  <label>Tilbakebetalt beløp</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.tilbakebetaltBelop" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+              </div>
+
+              <!-- Post 28: Tilbakebetalt overkurs -->
+              <div *ngIf="selectedPostingType === '28'" class="posting-form">
+                <div class="field-group">
+                  <label>Tilbakebetalt overkurs</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.tilbakebetaltOverkurs" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+              </div>
+
+              <!-- Post 29: Forhøyelse av aksjekapital/overkurs -->
+              <div *ngIf="selectedPostingType === '29'" class="posting-form">
+                <div class="field-group">
+                  <label>Type</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.type">
+                    <option value="Fisjon ved økning av pålydende">Fisjon ved økning av pålydende</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Forhøyelse av AK</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.forhoyelseAvAK" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Økning pål. pr. aksje</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.okningPalPrAksje" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+                <div class="field-group">
+                  <label>Forhøyelse av overkurs</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.forhoyelseAvOverkurs" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Overd. selskap org.nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.overdSelskapOrgNr">
+                </div>
+                <div class="field-group">
+                  <label>ISIN (Overd. selsk.)</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.isinOverdSelsk">
+                </div>
+                <div class="field-group">
+                  <label>Aksjeklasse (Overd. selsk.)</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.aksjeklasseOverdSelsk">
+                    <option value="">Velg aksjeklasse</option>
+                    <option *ngFor="let sc of availableShareClasses" [value]="sc">{{ sc }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Post 30: Andel nedsettelse av aksjekapital -->
+              <div *ngIf="selectedPostingType === '30'" class="posting-form">
+                <div class="field-group">
+                  <label>Reduksjon av AK</label>
+                  <input type="number" class="field-input" [(ngModel)]="newTransaction.reduksjonAvAK" min="0">
+                </div>
+                <div class="field-group">
+                  <label>Type</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.type">
+                    <option value="Fisjon ved reduksjon">Fisjon ved reduksjon</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Tidspunkt</label>
+                  <input type="datetime-local" class="field-input" [(ngModel)]="newTransaction.tidspunkt">
+                </div>
+                <div class="field-group">
+                  <label>Overd. selskap org.nr.</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.overdSelskapOrgNr">
+                </div>
+                <div class="field-group">
+                  <label>ISIN (Overd. selsk.)</label>
+                  <input type="text" class="field-input" [(ngModel)]="newTransaction.isinOverdSelsk">
+                </div>
+                <div class="field-group">
+                  <label>Aksjeklasse (Overd. selsk.)</label>
+                  <select class="field-input" [(ngModel)]="newTransaction.aksjeklasseOverdSelsk">
+                    <option value="">Velg aksjeklasse</option>
+                    <option *ngFor="let sc of availableShareClasses" [value]="sc">{{ sc }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="detail-footer-actions">
+                <button type="button" class="cancel-btn" (click)="closeTransactionDetailPanel()">Avbryt</button>
+                <button type="button" class="save-btn" (click)="saveNewTransaction()">Lagre</button>
+                <button type="button" class="save-next-btn" (click)="saveAndNextTransaction()">Lagre og neste</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-actions" *ngIf="!isTransactionDetailPanelOpen() && !isDividendDetailPanelOpen()">
+    <button type="button" class="cancel-btn" (click)="onCancel()">Avbryt</button>
+    <button type="button" class="save-btn" (click)="onSave()">Lagre</button>
+  </div>
+</div>

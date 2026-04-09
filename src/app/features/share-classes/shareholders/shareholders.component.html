@@ -1,0 +1,122 @@
+<div class="shareholders-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <div class="logo">Cantor</div>
+    </div>
+    <div class="header-right">
+      <div class="header-info">
+        <span class="company">{{ company }}</span>
+        <select class="year-select" [(ngModel)]="year">
+          <option *ngFor="let y of [2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030]" [value]="y">{{ y }}</option>
+        </select>
+        <select class="month-select" [(ngModel)]="month">
+          <option *ngFor="let m of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; let i = index" [value]="m">
+            {{ ['Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Desember'][i] }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Tabs -->
+  <div class="main-tabs">
+    <div class="tab" [class.active]="isShareClassesRoute()" (click)="navigateToShareClasses()">Selskap</div>
+    <div class="tab" [class.active]="isShareholdersRoute()" (click)="navigateToShareholders()">Aksjonærer</div>
+    <div class="tab">Reelle rettighetshavere</div>
+  </div>
+
+  <!-- Controls Row -->
+  <div class="controls-row">
+    <button type="button" class="add-btn" (click)="onAdd()">
+      <mat-icon>add</mat-icon>
+      Legg til
+    </button>
+    
+    <div class="search-container">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Søk"
+        [(ngModel)]="searchTerm">
+    </div>
+    
+    <label class="filter-checkbox">
+      <input 
+        type="checkbox" 
+        [(ngModel)]="showOnlyActive">
+      <span>Vis kun aktive</span>
+    </label>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container">
+    <table class="shareholders-table">
+      <thead>
+        <tr>
+          <th class="sortable" (click)="onSort('nr')">
+            Nr
+            <mat-icon class="sort-icon" *ngIf="getSortIcon('nr')">{{ getSortIcon('nr') }}</mat-icon>
+          </th>
+          <th class="sortable" (click)="onSort('navn')">
+            Navn
+            <mat-icon class="sort-icon" *ngIf="getSortIcon('navn')">{{ getSortIcon('navn') }}</mat-icon>
+          </th>
+          <th class="sortable" (click)="onSort('personnrOrgNr')">
+            Personnr / Org.nr
+            <mat-icon class="sort-icon" *ngIf="getSortIcon('personnrOrgNr')">{{ getSortIcon('personnrOrgNr') }}</mat-icon>
+          </th>
+          <th class="sortable" (click)="onSort('percentage2024')">
+            % 2024
+            <mat-icon class="sort-icon" *ngIf="getSortIcon('percentage2024')">{{ getSortIcon('percentage2024') }}</mat-icon>
+          </th>
+          <th class="sortable" (click)="onSort('percentage2025')">
+            % 2025
+            <mat-icon class="sort-icon" *ngIf="getSortIcon('percentage2025')">{{ getSortIcon('percentage2025') }}</mat-icon>
+          </th>
+          <th class="actions-col">Handlinger</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let shareholder of filteredShareholders">
+          <td>{{ shareholder.nr }}</td>
+          <td>
+            <span class="status-indicator" [class.active]="shareholder.status === 'Aktiv'"></span>
+            {{ shareholder.navn }} <span class="status-text">{{ shareholder.status }}</span>
+          </td>
+          <td>{{ shareholder.personnrOrgNr }}</td>
+          <td>{{ formatPercentage(shareholder.percentage2024) }}</td>
+          <td>{{ formatPercentage(shareholder.percentage2025) }}</td>
+          <td class="actions-col">
+            <button type="button" class="icon-btn" (click)="onEdit(shareholder)" title="Rediger">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button type="button" class="icon-btn" (click)="onDelete(shareholder)" title="Slett">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="totals-row" [class.warning]="isTotalWarning">
+          <td colspan="3" class="totals-label">Andel totalt</td>
+          <td [class.warning]="getTotalWarning(2024)">
+            {{ formatPercentage(totalPercentage2024) }}
+          </td>
+          <td [class.warning]="getTotalWarning(2025)">
+            {{ formatPercentage(totalPercentage2025) }}
+          </td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- Save Button -->
+  <div class="footer-actions">
+    <button type="button" (click)="onSave()" class="save-btn" [disabled]="!isDirty">
+      Lagre
+    </button>
+  </div>
+</div>

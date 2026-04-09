@@ -1,0 +1,132 @@
+.notes-dialog-container {
+  display: flex;
+  flex-direction: column;
+  min-width: 600px;
+  max-width: 800px;
+  font-family: inherit;
+}
+
+.dialog-title {
+  margin: 0;
+  padding: 20px 20px 16px 20px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dialog-content {
+  padding: 20px;
+  overflow: auto;
+  max-height: calc(90vh - 150px);
+  margin: 0 !important;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.notes-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  font-size: 13px;
+
+  thead {
+    .header-row {
+      background-color: #f8f9fa;
+      
+      th {
+        padding: 12px 10px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 12px;
+        color: #333;
+        border: 1px solid #d1d5db;
+        background-color: #f8f9fa;
+        
+        &.label-col {
+          width: 200px;
+          min-width: 150px;
+        }
+        
+        &.value-col {
+          width: 150px;
+          min-width: 120px;
+          text-align: right;
+        }
+      }
+    }
+  }
+
+  tbody {
+    .data-row {
+      td {
+        padding: 12px 10px;
+        border: 1px solid #d1d5db;
+        background-color: white;
+        
+        &.label-col {
+          font-weight: 500;
+        }
+        
+        &.value-col {
+          text-align: right;
+          font-family: 'Courier New', monospace;
+        }
+      }
+      
+      &:last-child {
+        td {
+          font-weight: 600;
+          background-color: #f8f9fa;
+          border-top: 1px solid #d1d5db;
+        }
+      }
+      
+      &:hover {
+        td {
+          background-color: #f8f9fa;
+        }
+      }
+    }
+  }
+}
+
+// Dialog Actions
+::ng-deep .dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px 20px 20px;
+  border-top: 1px solid #e5e7eb;
+  margin: 0 !important;
+
+  .btn-close {
+    min-width: 100px;
+    height: 40px;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 500;
+    background-color: #4b5563;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #374151;
+    }
+
+    &:focus {
+      outline: 2px solid #1e40af;
+      outline-offset: 2px;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+}
+

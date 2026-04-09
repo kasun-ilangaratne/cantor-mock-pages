@@ -1,0 +1,274 @@
+.egenkapital-gruppe-dialog-container {
+  display: flex;
+  flex-direction: column;
+  min-width: 500px;
+  max-width: 600px;
+  font-family: inherit;
+}
+
+.dialog-title {
+  margin: 0;
+  padding: 20px 20px 16px 20px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dialog-content {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(90vh - 200px);
+  margin: 0 !important;
+}
+
+// Add Group Section
+.add-group-section {
+  margin-top: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  
+  .add-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background-color: #4b5563;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    line-height: 1;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+    }
+
+    &:hover {
+      background-color: #374151;
+    }
+
+    &:focus {
+      outline: 2px solid #1e40af;
+      outline-offset: 2px;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+}
+
+// Groups List
+.groups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .group-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: white;
+    transition: all 0.2s ease;
+
+    &:hover:not(.editing) {
+      background-color: #f8f9fa;
+    }
+
+    &.editing {
+      background-color: #fffbeb;
+      border-color: #fbbf24;
+    }
+
+    .group-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 12px;
+
+      .group-name {
+        flex: 1;
+        font-size: 14px;
+        color: #333;
+      }
+
+      .delete-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        background: none;
+        border: none;
+        color: #ef4444;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+
+        &:hover {
+          background-color: #fee2e2;
+        }
+
+        &:focus {
+          outline: 2px solid #ef4444;
+          outline-offset: 2px;
+        }
+      }
+    }
+
+    .group-edit {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+
+      .group-input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 14px;
+        background-color: white;
+
+        &:focus {
+          outline: none;
+          border-color: #1e40af;
+          box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+        }
+      }
+
+      .edit-actions {
+        display: flex;
+        gap: 4px;
+
+        .save-btn,
+        .cancel-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          padding: 0;
+          background: none;
+          border: none;
+          cursor: pointer;
+          border-radius: 4px;
+          transition: all 0.2s ease;
+
+          mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+          }
+
+          &:focus {
+            outline: 2px solid #1e40af;
+            outline-offset: 2px;
+          }
+        }
+
+        .save-btn {
+          color: #10b981;
+
+          &:hover {
+            background-color: #d1fae5;
+          }
+
+          &:disabled {
+            color: #9ca3af;
+            cursor: not-allowed;
+
+            &:hover {
+              background-color: transparent;
+            }
+          }
+        }
+
+        .cancel-btn {
+          color: #ef4444;
+
+          &:hover {
+            background-color: #fee2e2;
+          }
+        }
+      }
+    }
+  }
+
+  .empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+  }
+}
+
+// Dialog Actions
+::ng-deep .dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px 20px 20px;
+  border-top: 1px solid #e5e7eb;
+  margin: 0 !important;
+
+  .btn-cancel,
+  .btn-save {
+    min-width: 100px;
+    height: 40px;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: 2px solid #1e40af;
+      outline-offset: 2px;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+
+  .btn-cancel {
+    background-color: #6b7280;
+    color: white;
+
+    &:hover {
+      background-color: #4b5563;
+    }
+  }
+
+  .btn-save {
+    background-color: #4b5563;
+    color: white;
+
+    &:hover {
+      background-color: #374151;
+    }
+  }
+}
+

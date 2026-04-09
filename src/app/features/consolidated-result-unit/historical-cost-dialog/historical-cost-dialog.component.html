@@ -1,0 +1,230 @@
+<div class="eliminations-dialog">
+  <div class="dialog-header">
+    <h2>Historisk kost (Historical Cost)</h2>
+  </div>
+  
+  <div class="dialog-content">
+    <form [formGroup]="form" class="historical-cost-form">
+      
+      <!-- Toggle Bar -->
+      <div class="toggle-section">
+        <div class="toggle-label">Benyt valutakurs noter</div>
+        <mat-button-toggle-group formControlName="mode" class="toggle-group">
+          <mat-button-toggle value="resultat">Resultat</mat-button-toggle>
+          <mat-button-toggle value="balanse">Balanse</mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+
+      <!-- Data Grid -->
+      <div class="table-section">
+        <div class="table-header">
+          <h3>Exchange Rates</h3>
+        </div>
+        
+        <div class="table-container">
+          <div class="table-actions">
+            <button type="button" class="btn-primary" (click)="addRow()">
+              Ny (New)
+            </button>
+          </div>
+          
+          <table class="eliminations-table">
+            <thead>
+              <tr *ngIf="!perTransaction">
+                <th>Konto nr. (Account No.)</th>
+                <th>Kurs (Rate)</th>
+                <th>Dato (Date)</th>
+                <th>Kommentar (Comment)</th>
+                <th>I år (Resultat)</th>
+                <th>I fjor (Resultat)</th>
+                <th>I år (Balanse)</th>
+                <th>I fjor (Balanse)</th>
+                <th>Actions</th>
+              </tr>
+              <tr *ngIf="perTransaction">
+                <th>Konto nr. (Account No.)</th>
+                <th>Beløp (Amount)</th>
+                <th>Kurs (Rate)</th>
+                <th>Dato (Date)</th>
+                <th>Kommentar (Comment)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container *ngIf="!perTransaction">
+                <tr *ngFor="let element of dataSource.data; let i = index">
+                  <!-- Account -->
+                  <td>
+                    <app-account-dropdown
+                      [selectedValue]="element.account"
+                      (accountSelected)="onAccountChange(element, $event)"
+                      placeholder="Select Account">
+                    </app-account-dropdown>
+                  </td>
+                  <!-- Rate -->
+                  <td>
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.rate" 
+                      [ngModelOptions]="{standalone: true}"
+                      class="form-input no-padding rate-input"
+                      step="0.01"
+                      placeholder="0.00" />
+                  </td>
+                  <!-- Date -->
+                  <td>
+                    <input 
+                      type="date" 
+                      [value]="getDateString(element.date)"
+                      (change)="onDateChange(element, $event)"
+                      class="form-input no-padding" />
+                  </td>
+                  <!-- Comment -->
+                  <td>
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.comment" 
+                      [ngModelOptions]="{standalone: true}"
+                      class="form-input no-padding"
+                      placeholder="Enter comment" />
+                  </td>
+                  <!-- Radio Buttons as separate columns -->
+                  <td>
+                    <input 
+                      type="radio" 
+                      name="choice_{{element.id}}" 
+                      [checked]="element.yearRes"
+                      (change)="onRadioChange(element, 'yearRes')"
+                      class="form-radio" />
+                  </td>
+                  <td>
+                    <input 
+                      type="radio" 
+                      name="choice_{{element.id}}" 
+                      [checked]="element.prevRes"
+                      (change)="onRadioChange(element, 'prevRes')"
+                      class="form-radio" />
+                  </td>
+                  <td>
+                    <input 
+                      type="radio" 
+                      name="choice_{{element.id}}" 
+                      [checked]="element.yearBal"
+                      (change)="onRadioChange(element, 'yearBal')"
+                      class="form-radio" />
+                  </td>
+                  <td>
+                    <input 
+                      type="radio" 
+                      name="choice_{{element.id}}" 
+                      [checked]="element.prevBal"
+                      (change)="onRadioChange(element, 'prevBal')"
+                      class="form-radio" />
+                  </td>
+                  <!-- Actions -->
+                  <td>
+                    <button 
+                      type="button" 
+                      class="btn-delete" 
+                      (click)="deleteRow(i)"
+                      title="Delete row">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              </ng-container>
+              <ng-container *ngIf="perTransaction">
+                <tr *ngFor="let element of dataSource.data; let i = index">
+                  <!-- Account -->
+                  <td>
+                    <app-account-dropdown
+                      [selectedValue]="element.account"
+                      (accountSelected)="onAccountChange(element, $event)"
+                      placeholder="Select Account">
+                    </app-account-dropdown>
+                  </td>
+                  <!-- Amount -->
+                  <td>
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.amount" 
+                      [ngModelOptions]="{standalone: true}"
+                      class="form-input no-padding"
+                      step="0.01"
+                      placeholder="0.00" />
+                  </td>
+                  <!-- Rate -->
+                  <td>
+                    <input 
+                      type="number" 
+                      [(ngModel)]="element.rate" 
+                      [ngModelOptions]="{standalone: true}"
+                      class="form-input no-padding rate-input"
+                      step="0.01"
+                      placeholder="0.00" />
+                  </td>
+                  <!-- Date -->
+                  <td>
+                    <input 
+                      type="date" 
+                      [value]="getDateString(element.date)"
+                      (change)="onDateChange(element, $event)"
+                      class="form-input no-padding" />
+                  </td>
+                  <!-- Comment -->
+                  <td>
+                    <input 
+                      type="text" 
+                      [(ngModel)]="element.comment" 
+                      [ngModelOptions]="{standalone: true}"
+                      class="form-input no-padding"
+                      placeholder="Enter comment" />
+                  </td>
+                  <!-- Actions -->
+                  <td>
+                    <button 
+                      type="button" 
+                      class="btn-delete" 
+                      (click)="deleteRow(i)"
+                      title="Delete row">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="dialog-actions">
+    <div class="dialog-checkboxes">
+      <label class="checkbox-container">
+        <input 
+          type="checkbox" 
+          [(ngModel)]="altCalcValue"
+          [ngModelOptions]="{standalone: true}"
+          class="form-checkbox">
+        <span class="checkmark"></span>
+        Alternativ beregning (Alternative calculation)
+      </label>
+      
+      <label class="checkbox-container">
+        <input 
+          type="checkbox" 
+          [(ngModel)]="perTransactionValue"
+          [ngModelOptions]="{standalone: true}"
+          class="form-checkbox">
+        <span class="checkmark"></span>
+        Beregning per transaksjon (Calculation per transaction)
+      </label>
+    </div>
+    
+    <div class="dialog-buttons">
+      <button type="button" class="btn-secondary" (click)="close()">Close</button>
+      <button type="button" class="btn-primary" (click)="save()">Save</button>
+    </div>
+  </div>
+</div> 

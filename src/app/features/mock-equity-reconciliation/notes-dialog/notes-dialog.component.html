@@ -1,0 +1,31 @@
+<div class="notes-dialog-container">
+  <h2 mat-dialog-title class="dialog-title">Note – Egenkapital</h2>
+  
+  <mat-dialog-content class="dialog-content">
+    <div class="table-container">
+      <table class="notes-table">
+        <thead>
+          <tr class="header-row">
+            <th class="label-col"></th>
+            <th class="value-col">Aksjekapital</th>
+            <th class="value-col">Annen egenkapital</th>
+            <th class="value-col">Sum</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of rows" class="data-row">
+            <td class="label-col">{{ row.label }}</td>
+            <td class="value-col">{{ formatNumber(row.aksjekapital) }}</td>
+            <td class="value-col">{{ formatNumber(row.annenEgenkapital) }}</td>
+            <td class="value-col">{{ formatNumber(row.sum) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-close" (click)="onClose()">Lukk</button>
+  </mat-dialog-actions>
+</div>
+

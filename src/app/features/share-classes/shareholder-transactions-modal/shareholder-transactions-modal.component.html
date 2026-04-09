@@ -1,0 +1,387 @@
+<div class="transactions-modal">
+  <div class="modal-header">
+    <h2 class="modal-title">Transaksjoner – {{ shareholderName }}</h2>
+    <button type="button" class="close-btn" (click)="onCancel()" aria-label="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="modal-content">
+    <!-- Top Row: Year, Filters, Balance -->
+    <div class="top-controls">
+      <div class="controls-left">
+        <div class="year-label">År: {{ year }}</div>
+        
+        <div class="share-class-filter">
+          <select class="filter-select" [(ngModel)]="selectedShareClass" (ngModelChange)="onShareClassFilterChange()">
+            <option *ngFor="let sc of availableShareClasses" [value]="sc">{{ sc }}</option>
+          </select>
+          
+          <div class="share-class-chips">
+            <div class="chip" *ngFor="let sc of selectedShareClasses">
+              <input 
+                type="checkbox" 
+                [checked]="true"
+                (change)="toggleShareClass(sc)"
+                class="chip-checkbox">
+              <span class="chip-label">{{ sc }}</span>
+              <button type="button" class="chip-remove" (click)="removeShareClass(sc)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="controls-right">
+        <div class="balance-summary">
+          <div class="balance-row">
+            <span class="balance-label">Inngående:</span>
+            <span class="balance-value">{{ incomingBalance }}</span>
+          </div>
+          <div class="balance-row">
+            <span class="balance-label">Endringer:</span>
+            <span class="balance-value" [class.positive]="changesBalance > 0" [class.negative]="changesBalance < 0">
+              {{ formatNumber(changesBalance) }}
+            </span>
+          </div>
+          <div class="balance-row">
+            <span class="balance-label">Utgående:</span>
+            <span class="balance-value">{{ outgoingBalance }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 1: Utbytte og tilbakebetaling -->
+    <div class="section">
+      <div class="section-header">
+        <h3>Utbytte og tilbakebetaling</h3>
+        <div class="section-actions">
+          <button type="button" class="add-btn" (click)="showDividendAddMenu()">
+            <mat-icon>add</mat-icon>
+            Legg til
+          </button>
+          <div class="add-options" *ngIf="showDividendAddOptions">
+            <button type="button" class="add-option" (click)="addDividend('Utbytte')">
+              Utbytte for denne aksjonæren
+            </button>
+            <button type="button" class="add-option" (click)="addDividend('Tilbakebetaling')">
+              Tilbakebetaling av tidligere innbetalt kapital
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Aksjeklasse</th>
+            <th>Type</th>
+            <th>Transaksjonstype</th>
+            <th>Dato</th>
+            <th>Beløp</th>
+            <th class="actions-col">Handlinger</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let dividend of dividendPayments">
+            <tr *ngIf="isShareClassVisible(dividend.aksjeklasse)" 
+                [class.editing]="dividend.isEditing">
+              <td>
+              <select 
+                *ngIf="dividend.isEditing" 
+                class="table-input"
+                [(ngModel)]="dividend.aksjeklasse">
+                <option *ngFor="let sc of availableShareClasses" [value]="sc">{{ sc }}</option>
+              </select>
+              <span *ngIf="!dividend.isEditing">{{ dividend.aksjeklasse }}</span>
+            </td>
+            <td>
+              <select 
+                *ngIf="dividend.isEditing" 
+                class="table-input"
+                [(ngModel)]="dividend.type">
+                <option value="Utbytte">Utbytte</option>
+                <option value="Tilbakebetaling">Tilbakebetaling</option>
+              </select>
+              <span *ngIf="!dividend.isEditing">{{ dividend.type }}</span>
+            </td>
+            <td>
+              <select 
+                *ngIf="dividend.isEditing && dividend.type !== 'Utbytte'" 
+                class="table-input"
+                [(ngModel)]="dividend.transaksjonstype">
+                <option value="Kjøp">Kjøp</option>
+                <option value="Salg">Salg</option>
+              </select>
+              <span *ngIf="!dividend.isEditing || dividend.type === 'Utbytte'" 
+                    [class.disabled]="dividend.type === 'Utbytte'">
+                {{ dividend.transaksjonstype || '-' }}
+              </span>
+            </td>
+            <td>
+              <input 
+                *ngIf="dividend.isEditing" 
+                type="date"
+                class="table-input"
+                [(ngModel)]="dividend.dato">
+              <span *ngIf="!dividend.isEditing">{{ dividend.dato }}</span>
+            </td>
+            <td>
+              <input 
+                *ngIf="dividend.isEditing" 
+                type="number"
+                class="table-input"
+                [(ngModel)]="dividend.belop">
+              <span *ngIf="!dividend.isEditing">{{ formatNumber(dividend.belop) }}</span>
+            </td>
+            <td class="actions-col">
+              <button 
+                *ngIf="!dividend.isEditing"
+                type="button" 
+                class="icon-btn" 
+                (click)="editDividend(dividend)" 
+                title="Rediger">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button 
+                *ngIf="dividend.isEditing"
+                type="button" 
+                class="icon-btn save-btn" 
+                (click)="saveDividend(dividend)" 
+                title="Lagre">
+                <mat-icon>check</mat-icon>
+              </button>
+              <button 
+                *ngIf="dividend.isEditing"
+                type="button" 
+                class="icon-btn cancel-btn" 
+                (click)="cancelEditDividend(dividend)" 
+                title="Avbryt">
+                <mat-icon>close</mat-icon>
+              </button>
+              <button 
+                *ngIf="!dividend.isEditing"
+                type="button" 
+                class="icon-btn" 
+                (click)="deleteDividend(dividend)" 
+                title="Slett">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 2: Transaksjoner -->
+    <div class="section">
+      <div class="section-header">
+        <h3>Transaksjoner</h3>
+        <button type="button" class="add-btn" (click)="addTransaction()">
+          <mat-icon>add</mat-icon>
+          Legg til
+        </button>
+      </div>
+      
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Aksjeklasse</th>
+            <th>Transaksjon</th>
+            <th>Transaksjonstype</th>
+            <th>Dato</th>
+            <th>Antall</th>
+            <th class="actions-col">Handlinger</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let transaction of getParentTransactions()">
+            <!-- Parent Row -->
+            <tr [class.editing]="transaction.isEditing" [class.has-children]="isParent(transaction)">
+              <td>
+                <button 
+                  *ngIf="isParent(transaction)"
+                  type="button" 
+                  class="expand-btn"
+                  (click)="toggleExpand(transaction)">
+                  <mat-icon>{{ isExpanded(transaction) ? 'remove' : 'add' }}</mat-icon>
+                </button>
+              </td>
+              <td>
+                <select 
+                  *ngIf="transaction.isEditing" 
+                  class="table-input"
+                  [(ngModel)]="transaction.aksjeklasse">
+                  <option *ngFor="let sc of availableShareClasses" [value]="sc">{{ sc }}</option>
+                </select>
+                <span *ngIf="!transaction.isEditing">{{ transaction.aksjeklasse }}</span>
+              </td>
+              <td>{{ transaction.transaksjon }}</td>
+              <td>
+                <select 
+                  *ngIf="transaction.isEditing" 
+                  class="table-input"
+                  [(ngModel)]="transaction.transaksjonstype">
+                  <option value="Kjøp">Kjøp</option>
+                  <option value="Salg">Salg</option>
+                </select>
+                <span *ngIf="!transaction.isEditing">{{ transaction.transaksjonstype }}</span>
+              </td>
+              <td>
+                <input 
+                  *ngIf="transaction.isEditing" 
+                  type="date"
+                  class="table-input"
+                  [(ngModel)]="transaction.dato">
+                <span *ngIf="!transaction.isEditing">{{ transaction.dato }}</span>
+              </td>
+              <td>
+                <input 
+                  *ngIf="transaction.isEditing" 
+                  type="number"
+                  class="table-input"
+                  [(ngModel)]="transaction.antall">
+                <span *ngIf="!transaction.isEditing" 
+                      [class.positive]="transaction.antall > 0" 
+                      [class.negative]="transaction.antall < 0">
+                  {{ formatNumber(transaction.antall) }}
+                </span>
+              </td>
+              <td class="actions-col">
+                <button 
+                  *ngIf="!transaction.isEditing"
+                  type="button" 
+                  class="icon-btn" 
+                  (click)="editTransaction(transaction)" 
+                  title="Rediger">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button 
+                  *ngIf="transaction.isEditing"
+                  type="button" 
+                  class="icon-btn save-btn" 
+                  (click)="saveTransaction(transaction)" 
+                  title="Lagre">
+                  <mat-icon>check</mat-icon>
+                </button>
+                <button 
+                  *ngIf="transaction.isEditing"
+                  type="button" 
+                  class="icon-btn cancel-btn" 
+                  (click)="cancelEditTransaction(transaction)" 
+                  title="Avbryt">
+                  <mat-icon>close</mat-icon>
+                </button>
+                <button 
+                  *ngIf="!transaction.isEditing"
+                  type="button" 
+                  class="icon-btn" 
+                  (click)="deleteTransaction(transaction)" 
+                  title="Slett">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+            
+            <!-- Child Rows -->
+            <tr *ngFor="let child of getChildTransactions(transaction.id)" 
+                [class.editing]="child.isEditing"
+                [class.child-row]="true">
+              <td></td>
+              <td>{{ child.aksjeklasse }}</td>
+              <td>{{ child.transaksjon }}</td>
+              <td>
+                <select 
+                  *ngIf="child.isEditing" 
+                  class="table-input"
+                  [(ngModel)]="child.transaksjonstype">
+                  <option value="Kjøp">Kjøp</option>
+                  <option value="Salg">Salg</option>
+                </select>
+                <span *ngIf="!child.isEditing">{{ child.transaksjonstype }}</span>
+              </td>
+              <td>
+                <input 
+                  *ngIf="child.isEditing" 
+                  type="date"
+                  class="table-input"
+                  [(ngModel)]="child.dato">
+                <span *ngIf="!child.isEditing">{{ child.dato }}</span>
+              </td>
+              <td>
+                <input 
+                  *ngIf="child.isEditing" 
+                  type="number"
+                  class="table-input"
+                  [(ngModel)]="child.antall">
+                <span *ngIf="!child.isEditing" 
+                      [class.positive]="child.antall > 0" 
+                      [class.negative]="child.antall < 0">
+                  {{ formatNumber(child.antall) }}
+                </span>
+              </td>
+              <td class="actions-col">
+                <button 
+                  *ngIf="!child.isEditing"
+                  type="button" 
+                  class="icon-btn" 
+                  (click)="editTransaction(child)" 
+                  title="Rediger">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button 
+                  *ngIf="child.isEditing"
+                  type="button" 
+                  class="icon-btn save-btn" 
+                  (click)="saveTransaction(child)" 
+                  title="Lagre">
+                  <mat-icon>check</mat-icon>
+                </button>
+                <button 
+                  *ngIf="child.isEditing"
+                  type="button" 
+                  class="icon-btn cancel-btn" 
+                  (click)="cancelEditTransaction(child)" 
+                  title="Avbryt">
+                  <mat-icon>close</mat-icon>
+                </button>
+                <button 
+                  *ngIf="!child.isEditing"
+                  type="button" 
+                  class="icon-btn" 
+                  (click)="deleteTransaction(child)" 
+                  title="Slett">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </ng-container>
+          
+          <!-- Summary Row -->
+          <tr class="summary-row">
+            <td colspan="5" class="summary-label">Sum endringer:</td>
+            <td class="summary-value" [class.positive]="getTransactionSum() > 0" [class.negative]="getTransactionSum() < 0">
+              {{ formatNumber(getTransactionSum()) }}
+            </td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="modal-footer">
+    <div class="footer-left">
+      <span class="warning-text" *ngIf="isDirty">⚠ Endringer er ikke lagret</span>
+    </div>
+    <div class="footer-right">
+      <button type="button" class="cancel-btn" (click)="onCancel()">Avbryt</button>
+      <button type="button" class="save-btn" (click)="onSave()" [disabled]="!isDirty">Lagre</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,168 @@
+<div class="tree-builder-container">
+  <div class="tree-builder-header">
+    <h1>Tree Builder (Trestruktur)</h1>
+  </div>
+
+  <div class="tree-builder-content">
+    <div class="three-panel-layout">
+      
+      <!-- LEFT PANEL: Dimensions -->
+      <div class="panel dimensions-panel">
+        <div class="panel-header">
+          <h3>Dimensions (Dimensjoner)</h3>
+        </div>
+        <div class="panel-content">
+          <mat-nav-list class="dimensions-list">
+            <mat-list-item 
+              *ngFor="let dimension of dimensions"
+              [class.selected]="selectedDimension?.id === dimension.id"
+              (click)="onDimensionSelect(dimension)"
+              class="dimension-item">
+              <span class="dimension-name">{{ dimension.name }}</span>
+            </mat-list-item>
+          </mat-nav-list>
+        </div>
+      </div>
+
+      <!-- MIDDLE PANEL: Dimension Values -->
+      <div class="panel values-panel">
+        <div class="panel-header">
+          <h3>Dimension Values (Dimensjonsverdier)</h3>
+        </div>
+        <div class="panel-content">
+          <div 
+            cdkDropList
+            (cdkDropListDropped)="onDrop($event)"
+            class="values-container">
+            <mat-card 
+              *ngFor="let value of selectedDimension?.values || []"
+              class="value-card"
+              cdkDrag>
+              <div class="value-content">
+                <span class="value-name">{{ value.name }}</span>
+                <div class="value-actions">
+                  <button 
+                    mat-icon-button 
+                    class="action-btn edit-btn"
+                    (click)="onValueEdit(value)"
+                    title="Edit">
+                    <span class="icon">✏️</span>
+                  </button>
+                  <button 
+                    mat-icon-button 
+                    class="action-btn delete-btn"
+                    (click)="onValueDelete(value)"
+                    title="Delete">
+                    <span class="icon">🗑</span>
+                  </button>
+                </div>
+              </div>
+            </mat-card>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL: Tree View -->
+      <div class="panel tree-panel">
+        <div class="panel-header">
+          <h3>Tree Structure (Trestruktur)</h3>
+          <div class="tree-controls">
+            <mat-select 
+              [(value)]="selectedTreeIndex"
+              (selectionChange)="onTreeSelect($event.value)"
+              class="tree-selector">
+              <mat-option 
+                *ngFor="let tree of trees; let i = index"
+                [value]="i">
+                {{ tree.label }}
+              </mat-option>
+            </mat-select>
+            <button 
+              mat-raised-button 
+              color="primary"
+              (click)="onCreateTree()"
+              class="create-tree-btn">
+              New Tree
+            </button>
+            <button 
+              mat-icon-button 
+              color="warn"
+              (click)="onDeleteTree(selectedTreeIndex)"
+              [disabled]="selectedTreeIndex === 0"
+              class="delete-tree-btn"
+              title="Delete Tree">
+              <span class="icon">🗑</span>
+            </button>
+          </div>
+        </div>
+        <div class="panel-content">
+          <div 
+            cdkDropList
+            (cdkDropListDropped)="onTreeDrop($event)"
+            class="tree-container">
+            <mat-tree 
+              [dataSource]="dataSource" 
+              [treeControl]="treeControl"
+              class="tree-view">
+              
+              <mat-tree-node 
+                *matTreeNodeDef="let node" 
+                matTreeNodePadding
+                class="tree-node">
+                <div class="node-content">
+                  <button 
+                    mat-icon-button 
+                    [attr.aria-label]="'Toggle ' + node.label"
+                    (click)="treeControl.toggle(node)"
+                    class="expand-btn">
+                    <mat-icon class="mat-icon-rtl-mirror">
+                      {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+                    </mat-icon>
+                  </button>
+                  <span class="node-label">{{ node.label }}</span>
+                  <button 
+                    mat-icon-button 
+                    color="warn"
+                    (click)="onNodeDelete(node.id)"
+                    [disabled]="node.isMaster"
+                    class="delete-node-btn"
+                    title="Delete Node">
+                    <span class="icon">🗑</span>
+                  </button>
+                </div>
+              </mat-tree-node>
+
+              <mat-tree-node 
+                *matTreeNodeDef="let node; when: hasChild" 
+                matTreeNodePadding
+                class="tree-node">
+                <div class="node-content">
+                  <button 
+                    mat-icon-button 
+                    [attr.aria-label]="'Toggle ' + node.label"
+                    (click)="treeControl.toggle(node)"
+                    class="expand-btn">
+                    <mat-icon class="mat-icon-rtl-mirror">
+                      {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+                    </mat-icon>
+                  </button>
+                  <span class="node-label">{{ node.label }}</span>
+                  <button 
+                    mat-icon-button 
+                    color="warn"
+                    (click)="onNodeDelete(node.id)"
+                    [disabled]="node.isMaster"
+                    class="delete-node-btn"
+                    title="Delete Node">
+                    <span class="icon">🗑</span>
+                  </button>
+                </div>
+              </mat-tree-node>
+            </mat-tree>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div> 

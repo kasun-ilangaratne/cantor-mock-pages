@@ -1,0 +1,47 @@
+<div class="dimension-filter-dialog">
+  <div class="dialog-header">
+    <h2>Dimension Filter (Dimensjonsfilter)</h2>
+  </div>
+
+  <div class="dialog-content">
+    <form [formGroup]="form">
+      <div class="form-section">
+        <div class="form-field">
+          <label for="dimnr">Dimnr</label>
+          <input 
+            type="text" 
+            id="dimnr"
+            formControlName="dimnr"
+            placeholder="Enter dimension number"
+            class="form-input">
+        </div>
+
+        <div class="form-field">
+          <label for="dimId">Dim-ID</label>
+          <input 
+            type="text" 
+            id="dimId"
+            formControlName="dimId"
+            placeholder="Enter dimension ID"
+            class="form-input">
+        </div>
+
+        <div class="checkbox-group">
+          <div class="checkbox-field">
+            <input 
+              type="checkbox" 
+              id="invertert"
+              formControlName="invertert"
+              class="form-checkbox">
+            <label for="invertert">Invertert</label>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="dialog-actions">
+    <button type="button" class="btn-secondary" (click)="onCancel()">Cancel</button>
+    <button type="button" class="btn-primary" (click)="onSave()">Save</button>
+  </div>
+</div> 

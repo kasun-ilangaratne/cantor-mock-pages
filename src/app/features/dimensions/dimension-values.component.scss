@@ -1,0 +1,14 @@
+// Component-specific styles
+i {
+  @apply inline-block w-4 h-4;
+}
+
+.i-edit { 
+  mask: url('/assets/icons/edit.svg') center/contain no-repeat; 
+  background: currentColor; 
+}
+
+.i-trash { 
+  mask: url('/assets/icons/trash.svg') center/contain no-repeat; 
+  background: currentColor; 
+} 
