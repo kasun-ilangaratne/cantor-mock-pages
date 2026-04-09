@@ -21,6 +21,28 @@
           [title]="demoMode === 'single' ? 'Switch to Multiple Share Classes' : 'Switch to Single Share Class'">
           Demo: {{ demoMode === 'single' ? 'Single' : 'Multiple' }}
         </button>
+
+        <div class="company-type-selector" role="radiogroup" aria-label="Selskapstype">
+          <span class="selector-label">Selskapstype</span>
+          <label class="radio-option">
+            <input
+              type="radio"
+              name="companyType"
+              [value]="'standard'"
+              [(ngModel)]="companyType"
+              (change)="onCompanyTypeChange()">
+            <span>Standard selskap</span>
+          </label>
+          <label class="radio-option">
+            <input
+              type="radio"
+              name="companyType"
+              [value]="'passThrough'"
+              [(ngModel)]="companyType"
+              (change)="onCompanyTypeChange()">
+            <span>Gjennomstrømningsselskap (Pass-through)</span>
+          </label>
+        </div>
       </div>
     </div>
   </div>
@@ -28,19 +50,21 @@
   <!-- Main Tabs -->
   <div class="main-tabs">
     <div class="tab" [class.active]="isShareClassesRoute()" (click)="navigateToShareClasses()">Selskap</div>
-    <div class="tab" [class.active]="isShareholdersRoute()" (click)="navigateToShareholders()">Aksjonærer</div>
+    <div class="tab" [class.active]="isShareholdersRoute()" (click)="navigateToShareholders()">
+      {{ isStandardCompanyType ? 'Aksjonærer' : 'Deltakere' }}
+    </div>
     <div class="tab">Reelle rettighetshavere</div>
   </div>
 
   <!-- Sub Tabs -->
-  <div class="sub-tabs">
+  <div class="sub-tabs" *ngIf="isStandardCompanyType">
     <button type="button" class="sub-tab" [class.active]="activeSubTab === 'aksjeklasser'" (click)="openShareClassesSelectionDialog()">Aksjeklasser</button>
     <button type="button" class="sub-tab" [class.active]="activeSubTab === 'transaksjoner'" (click)="setActiveSubTab('transaksjoner')">Transaksjoner</button>
     <button type="button" class="sub-tab" [class.active]="activeSubTab === 'send'">Send aksjonærregisteroppgave</button>
   </div>
 
   <!-- Company Transactions View -->
-  <div class="company-transactions-view" *ngIf="activeSubTab === 'transaksjoner'">
+  <div class="company-transactions-view" *ngIf="isStandardCompanyType && activeSubTab === 'transaksjoner'">
     <div class="transactions-header">
       <h2 class="page-title">Transaksjoner - {{ company }}</h2>
     </div>
@@ -569,7 +593,7 @@
 
   <!-- Main Content - Split Screen Layout -->
   <div class="main-content" 
-       *ngIf="activeSubTab !== 'transaksjoner'"
+       *ngIf="isStandardCompanyType && activeSubTab !== 'transaksjoner'"
        [class.with-detail]="selectedShareClass !== null || isAddMode" 
        [class.single-share-class]="hasSingleShareClass"
        [style.display]="'flex'">
@@ -928,6 +952,320 @@
         <button type="button" (click)="save()" class="save-detail-btn" *ngIf="hasSingleShareClass">
           Lagre
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pass-through company "Selskap" view -->
+  <div class="pass-through-content" *ngIf="!isStandardCompanyType">
+    <div class="pass-through-title-row">
+      <h2 class="pass-through-title">Eierskap</h2>
+    </div>
+
+    <div class="pass-through-card">
+      <div class="pass-through-filter-row">
+        <label class="inline-check">
+          <input type="checkbox" [(ngModel)]="passThroughIsNew">
+          <span>Nystiftet</span>
+        </label>
+        <input
+          type="text"
+          class="inline-date"
+          placeholder="dd.mm.yyyy"
+          [(ngModel)]="passThroughDateFrom"
+          (blur)="onPassThroughTopDateBlur('from')">
+
+        <label class="inline-check">
+          <input type="checkbox" [(ngModel)]="passThroughIsClosed">
+          <span>Avviklet</span>
+        </label>
+        <input
+          type="text"
+          class="inline-date"
+          placeholder="dd.mm.yyyy"
+          [(ngModel)]="passThroughDateTo"
+          (blur)="onPassThroughTopDateBlur('to')">
+
+        <label class="inline-check right-align">
+          <input
+            type="checkbox"
+            [ngModel]="passThroughUseNonOwnerShares"
+            (ngModelChange)="onPassThroughUseNonOwnerSharesChange($event)">
+          <span>Bruk andeler (ikke %) for deltagere</span>
+        </label>
+      </div>
+
+      <div class="pass-through-section">
+        <div class="section-heading with-action">
+          <span>Endringer i året</span>
+        </div>
+        <div class="pass-through-summary-row" [class.without-andeler]="!passThroughUseNonOwnerShares">
+          <div class="summary-item" *ngIf="passThroughUseNonOwnerShares">
+            <label>Andeler 2024</label>
+            <div class="summary-value">{{ passThroughShares2024 }}</div>
+          </div>
+          <div class="summary-item">
+            <label>Selskapskapital 2024</label>
+            <div class="summary-value">{{ formatNumber(passThroughCapital2024) }}</div>
+          </div>
+          <div class="summary-item">
+            <label>Unnkalt kapital 2024</label>
+            <input type="number" [(ngModel)]="passThroughUncalledCapital2024" class="summary-input">
+          </div>
+        </div>
+
+        <table class="pass-through-table">
+          <thead>
+            <tr>
+              <th>Tidspunkt</th>
+              <th>Kommentar</th>
+              <th>Andeler</th>
+              <th>Beløp</th>
+              <th class="actions-col">
+                Handlinger
+                <button type="button" class="row-action-btn add" (click)="addPassThroughRow('annual')">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of passThroughAnnualChanges">
+              <td>
+                <input
+                  *ngIf="row._editing"
+                  type="text"
+                  placeholder="dd.mm.yyyy hh:mm"
+                  [(ngModel)]="row._draft!.tidspunkt"
+                  (blur)="onPassThroughDateBlur(row)"
+                  class="inline-edit-input">
+                <span *ngIf="!row._editing">{{ row.tidspunkt }}</span>
+              </td>
+              <td>
+                <input *ngIf="row._editing" type="text" [(ngModel)]="row._draft!.kommentar" class="inline-edit-input">
+                <span *ngIf="!row._editing">{{ row.kommentar }}</span>
+              </td>
+              <td>
+                <input *ngIf="row._editing" type="number" [(ngModel)]="row._draft!.andeler" class="inline-edit-input">
+                <span *ngIf="!row._editing">{{ row.andeler }}</span>
+              </td>
+              <td class="num">
+                <input *ngIf="row._editing" type="number" [(ngModel)]="row._draft!.belop" class="inline-edit-input">
+                <span *ngIf="!row._editing">{{ formatNumber(row.belop) }}</span>
+              </td>
+              <td class="actions-col">
+                <button *ngIf="!row._editing" type="button" class="row-action-btn" (click)="startEditPassThroughRow(row)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button *ngIf="row._editing" type="button" class="row-action-btn save" (click)="savePassThroughRow(row, true)">
+                  <mat-icon>check</mat-icon>
+                </button>
+                <button *ngIf="row._editing" type="button" class="row-action-btn cancel" (click)="cancelPassThroughRow('annual', row)">
+                  <mat-icon>close</mat-icon>
+                </button>
+                <button type="button" class="row-action-btn delete" (click)="deletePassThroughRow('annual', row)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="pass-through-summary-row" [class.without-andeler]="!passThroughUseNonOwnerShares">
+          <div class="summary-item" *ngIf="passThroughUseNonOwnerShares">
+            <label>Andeler 2025</label>
+            <div class="summary-value">{{ passThroughShares2025 }}</div>
+          </div>
+          <div class="summary-item">
+            <label>Selskapskapital 2025</label>
+            <div class="summary-value">{{ formatNumber(passThroughCapital2025) }}</div>
+          </div>
+          <div class="summary-item">
+            <label>Unnkalt kapital 2025</label>
+            <input type="number" [(ngModel)]="passThroughUncalledCapital2025" class="summary-input">
+          </div>
+        </div>
+      </div>
+
+      <div class="pass-through-section">
+        <div class="section-heading with-action">
+          <span>Innbetalt fra deltakere</span>
+        </div>
+        <table class="pass-through-table">
+          <thead>
+            <tr>
+              <th>Tidspunkt</th>
+              <th>Kommentar</th>
+              <th>Beløp</th>
+              <th class="actions-col">
+                Handlinger
+                <button type="button" class="row-action-btn add" (click)="addPassThroughRow('paidIn')">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of passThroughPaidInEntries">
+              <td>
+                <input
+                  *ngIf="row._editing"
+                  type="text"
+                  placeholder="dd.mm.yyyy hh:mm"
+                  [(ngModel)]="row._draft!.tidspunkt"
+                  (blur)="onPassThroughDateBlur(row)"
+                  class="inline-edit-input">
+                <span *ngIf="!row._editing">{{ row.tidspunkt }}</span>
+              </td>
+              <td>
+                <input *ngIf="row._editing" type="text" [(ngModel)]="row._draft!.kommentar" class="inline-edit-input">
+                <span *ngIf="!row._editing">{{ row.kommentar }}</span>
+              </td>
+              <td class="num">
+                <input *ngIf="row._editing" type="number" [(ngModel)]="row._draft!.belop" class="inline-edit-input">
+                <span *ngIf="!row._editing">{{ formatNumber(row.belop) }}</span>
+              </td>
+              <td class="actions-col">
+                <button *ngIf="!row._editing" type="button" class="row-action-btn" (click)="startEditPassThroughRow(row)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button *ngIf="row._editing" type="button" class="row-action-btn save" (click)="savePassThroughRow(row, false)">
+                  <mat-icon>check</mat-icon>
+                </button>
+                <button *ngIf="row._editing" type="button" class="row-action-btn cancel" (click)="cancelPassThroughRow('paidIn', row)">
+                  <mat-icon>close</mat-icon>
+                </button>
+                <button type="button" class="row-action-btn delete" (click)="deletePassThroughRow('paidIn', row)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pass-through-section">
+        <div class="section-heading with-action">
+          <span>Utbetalt til deltakere</span>
+        </div>
+        <table class="pass-through-table">
+          <thead>
+            <tr>
+              <th>Tidspunkt</th>
+              <th>Kommentar</th>
+              <th>Beløp</th>
+              <th class="actions-col">
+                Handlinger
+                <button type="button" class="row-action-btn add" (click)="addPassThroughRow('paidOut')">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of passThroughPaidOutEntries">
+              <td>
+                <input
+                  *ngIf="row._editing"
+                  type="text"
+                  placeholder="dd.mm.yyyy hh:mm"
+                  [(ngModel)]="row._draft!.tidspunkt"
+                  (blur)="onPassThroughDateBlur(row)"
+                  class="inline-edit-input">
+                <span *ngIf="!row._editing">{{ row.tidspunkt }}</span>
+              </td>
+              <td>
+                <input *ngIf="row._editing" type="text" [(ngModel)]="row._draft!.kommentar" class="inline-edit-input">
+                <span *ngIf="!row._editing">{{ row.kommentar }}</span>
+              </td>
+              <td class="num">
+                <input *ngIf="row._editing" type="number" [(ngModel)]="row._draft!.belop" class="inline-edit-input">
+                <span *ngIf="!row._editing">{{ formatNumber(row.belop) }}</span>
+              </td>
+              <td class="actions-col">
+                <button *ngIf="!row._editing" type="button" class="row-action-btn" (click)="startEditPassThroughRow(row)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button *ngIf="row._editing" type="button" class="row-action-btn save" (click)="savePassThroughRow(row, false)">
+                  <mat-icon>check</mat-icon>
+                </button>
+                <button *ngIf="row._editing" type="button" class="row-action-btn cancel" (click)="cancelPassThroughRow('paidOut', row)">
+                  <mat-icon>close</mat-icon>
+                </button>
+                <button type="button" class="row-action-btn delete" (click)="deletePassThroughRow('paidOut', row)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pass-through-section">
+        <div class="section-heading with-action">
+          <span>Tilbakebetalt skattemessig innbetalt selskapskapital</span>
+        </div>
+        <table class="pass-through-table">
+          <thead>
+            <tr>
+              <th>Tidspunkt</th>
+              <th>Kommentar</th>
+              <th>Beløp</th>
+              <th class="actions-col">
+                Handlinger
+                <button type="button" class="row-action-btn add" (click)="addPassThroughRow('returnedTaxCapital')">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of passThroughReturnedTaxCapitalEntries">
+              <td>
+                <input
+                  *ngIf="row._editing"
+                  type="text"
+                  placeholder="dd.mm.yyyy hh:mm"
+                  [(ngModel)]="row._draft!.tidspunkt"
+                  (blur)="onPassThroughDateBlur(row)"
+                  class="inline-edit-input">
+                <span *ngIf="!row._editing">{{ row.tidspunkt }}</span>
+              </td>
+              <td>
+                <input *ngIf="row._editing" type="text" [(ngModel)]="row._draft!.kommentar" class="inline-edit-input">
+                <span *ngIf="!row._editing">{{ row.kommentar }}</span>
+              </td>
+              <td class="num">
+                <input *ngIf="row._editing" type="number" [(ngModel)]="row._draft!.belop" class="inline-edit-input">
+                <span *ngIf="!row._editing">{{ formatNumber(row.belop) }}</span>
+              </td>
+              <td class="actions-col">
+                <button *ngIf="!row._editing" type="button" class="row-action-btn" (click)="startEditPassThroughRow(row)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button *ngIf="row._editing" type="button" class="row-action-btn save" (click)="savePassThroughRow(row, false)">
+                  <mat-icon>check</mat-icon>
+                </button>
+                <button *ngIf="row._editing" type="button" class="row-action-btn cancel" (click)="cancelPassThroughRow('returnedTaxCapital', row)">
+                  <mat-icon>close</mat-icon>
+                </button>
+                <button type="button" class="row-action-btn delete" (click)="deletePassThroughRow('returnedTaxCapital', row)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pass-through-bottom-actions">
+        <button type="button" class="secondary-dark-btn" (click)="openAllocatedDividendDialog()">Avsatt utbytte</button>
+        <button type="button" class="secondary-dark-btn" (click)="openAdjustedEquityDialog()">Verdijustert egenkapital</button>
+        <button type="button" class="secondary-dark-btn" (click)="openAlternativeCurrencyDialog()">Alternativ valuta</button>
+      </div>
+
+      <div class="pass-through-save-row">
+        <button type="button" class="save-btn" (click)="save()">Lagre</button>
       </div>
     </div>
   </div>

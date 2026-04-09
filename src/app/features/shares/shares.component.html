@@ -1,0 +1,112 @@
+<div class="shares-page">
+  <div class="page-header">
+    <div>
+      <div class="logo">Cantor</div>
+      <h1 class="page-title">Aksjeposter</h1>
+      <p class="page-subtitle">Registrer og organiser aksjebeholdning for valgt år.</p>
+    </div>
+
+    <div class="header-right">
+      <span class="company">{{ company }}</span>
+      <select class="year-select" [(ngModel)]="year" (ngModelChange)="onYearChange()">
+        <option *ngFor="let currentYear of availableYears" [value]="currentYear">{{ currentYear }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar-actions">
+      <button type="button" class="secondary-btn" (click)="openImport()">Import</button>
+      <button type="button" class="secondary-btn" (click)="openAssetValueUpdate()">Update asset value</button>
+      <button type="button" class="secondary-btn" (click)="openGroups()">Groups</button>
+    </div>
+  </div>
+
+  <div class="controls-row">
+    <button type="button" class="primary-btn" (click)="onAdd()">
+      <mat-icon>add</mat-icon>
+      Add
+    </button>
+
+    <div class="search-container">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search"
+        [(ngModel)]="searchTerm">
+    </div>
+
+    <label class="checkbox-label">
+      <input type="checkbox" [(ngModel)]="showActiveOnly">
+      <span>Show active only</span>
+    </label>
+  </div>
+
+  <div class="table-shell">
+    <table class="shares-table">
+      <thead>
+        <tr>
+          <th class="sortable" (click)="onSort('index')">
+            No.
+            <mat-icon *ngIf="getSortIcon('index')" class="sort-icon">{{ getSortIcon('index') }}</mat-icon>
+          </th>
+          <th class="sortable" (click)="onSort('company')">
+            Company
+            <mat-icon *ngIf="getSortIcon('company')" class="sort-icon">{{ getSortIcon('company') }}</mat-icon>
+          </th>
+          <th class="sortable" (click)="onSort('organizationNumber')">
+            Organization number
+            <mat-icon *ngIf="getSortIcon('organizationNumber')" class="sort-icon">{{ getSortIcon('organizationNumber') }}</mat-icon>
+          </th>
+          <th class="sortable" (click)="onSort('type')">
+            Type
+            <mat-icon *ngIf="getSortIcon('type')" class="sort-icon">{{ getSortIcon('type') }}</mat-icon>
+          </th>
+          <th class="sortable" (click)="onSort('group')">
+            Group
+            <mat-icon *ngIf="getSortIcon('group')" class="sort-icon">{{ getSortIcon('group') }}</mat-icon>
+          </th>
+          <th class="sortable numeric" (click)="onSort('openingBalanceShares')">
+            Number of shares opening balance
+            <mat-icon *ngIf="getSortIcon('openingBalanceShares')" class="sort-icon">{{ getSortIcon('openingBalanceShares') }}</mat-icon>
+          </th>
+          <th class="sortable numeric" (click)="onSort('yearEndShares')">
+            Number of shares year end
+            <mat-icon *ngIf="getSortIcon('yearEndShares')" class="sort-icon">{{ getSortIcon('yearEndShares') }}</mat-icon>
+          </th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let shareholding of filteredShareholdings">
+          <td>{{ shareholding.index }}</td>
+          <td>
+            <span class="status-dot" [class.active]="shareholding.activeAtYearEnd"></span>
+            {{ shareholding.company }}
+          </td>
+          <td>{{ shareholding.organizationNumber }}</td>
+          <td>{{ shareholding.type }}</td>
+          <td>{{ shareholding.groupName || '-' }}</td>
+          <td class="numeric">{{ shareholding.openingBalanceShares }}</td>
+          <td class="numeric">{{ shareholding.yearEndShares }}</td>
+          <td class="actions-col">
+            <button type="button" class="icon-btn" (click)="onEdit(shareholding)" title="Edit">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button type="button" class="icon-btn" (click)="onDelete(shareholding)" title="Delete">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="filteredShareholdings.length === 0">
+          <td colspan="8" class="empty-state">
+            No shareholdings found for {{ year }}.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

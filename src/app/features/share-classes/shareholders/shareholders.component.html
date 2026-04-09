@@ -22,7 +22,9 @@
   <!-- Main Tabs -->
   <div class="main-tabs">
     <div class="tab" [class.active]="isShareClassesRoute()" (click)="navigateToShareClasses()">Selskap</div>
-    <div class="tab" [class.active]="isShareholdersRoute()" (click)="navigateToShareholders()">Aksjonærer</div>
+    <div class="tab" [class.active]="isShareholdersRoute()" (click)="navigateToShareholders()">
+      {{ participantsTabLabel }}
+    </div>
     <div class="tab">Reelle rettighetshavere</div>
   </div>
 
@@ -75,6 +77,20 @@
             % 2025
             <mat-icon class="sort-icon" *ngIf="getSortIcon('percentage2025')">{{ getSortIcon('percentage2025') }}</mat-icon>
           </th>
+          <th
+            *ngIf="showDeltakereAndelerColumns"
+            class="sortable"
+            (click)="onSort('selskapskapital2024')">
+            Selskapskapital 2024
+            <mat-icon class="sort-icon" *ngIf="getSortIcon('selskapskapital2024')">{{ getSortIcon('selskapskapital2024') }}</mat-icon>
+          </th>
+          <th
+            *ngIf="showDeltakereAndelerColumns"
+            class="sortable"
+            (click)="onSort('selskapskapital2025')">
+            Selskapskapital 2025
+            <mat-icon class="sort-icon" *ngIf="getSortIcon('selskapskapital2025')">{{ getSortIcon('selskapskapital2025') }}</mat-icon>
+          </th>
           <th class="actions-col">Handlinger</th>
         </tr>
       </thead>
@@ -88,6 +104,8 @@
           <td>{{ shareholder.personnrOrgNr }}</td>
           <td>{{ formatPercentage(shareholder.percentage2024) }}</td>
           <td>{{ formatPercentage(shareholder.percentage2025) }}</td>
+          <td *ngIf="showDeltakereAndelerColumns">{{ formatAmount(shareholder.selskapskapital2024) }}</td>
+          <td *ngIf="showDeltakereAndelerColumns">{{ formatAmount(shareholder.selskapskapital2025) }}</td>
           <td class="actions-col">
             <button type="button" class="icon-btn" (click)="onEdit(shareholder)" title="Rediger">
               <mat-icon>edit</mat-icon>
@@ -107,6 +125,8 @@
           <td [class.warning]="getTotalWarning(2025)">
             {{ formatPercentage(totalPercentage2025) }}
           </td>
+          <td *ngIf="showDeltakereAndelerColumns">{{ formatAmount(totalSelskapskapital2024) }}</td>
+          <td *ngIf="showDeltakereAndelerColumns">{{ formatAmount(totalSelskapskapital2025) }}</td>
           <td></td>
         </tr>
       </tfoot>

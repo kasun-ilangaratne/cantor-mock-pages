@@ -1,0 +1,281 @@
+.shares-page {
+  min-height: 100vh;
+  padding: 20px;
+  background: #f5f5f5;
+}
+
+.page-header,
+.toolbar,
+.controls-row,
+.table-shell {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 16px;
+  padding: 20px 24px;
+}
+
+.logo {
+  color: #1e40af;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.page-title {
+  margin: 8px 0 4px;
+  font-size: 28px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.page-subtitle {
+  margin: 0;
+  color: #6b7280;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.company {
+  font-weight: 500;
+  color: #374151;
+}
+
+.year-select,
+.search-input {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.year-select {
+  padding: 8px 12px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 16px 20px;
+}
+
+.controls-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: 12px;
+  margin-bottom: 16px;
+  padding: 16px 20px;
+}
+
+.toolbar {
+  justify-content: flex-end;
+}
+
+.toolbar-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+}
+
+.secondary-btn,
+.primary-btn,
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.secondary-btn {
+  padding: 8px 14px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+}
+
+.secondary-btn:hover,
+.icon-btn:hover {
+  background: #f3f4f6;
+}
+
+.primary-btn {
+  padding: 8px 16px;
+  border: none;
+  background: #1e40af;
+  color: #fff;
+}
+
+.primary-btn:hover {
+  background: #1d4ed8;
+}
+
+.search-container {
+  position: relative;
+  max-width: 360px;
+  min-width: 0; // Allow the input container to shrink in flex layouts.
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 12px 10px 40px;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #374151;
+  white-space: nowrap;
+  align-self: center;
+  line-height: 1;
+  justify-self: center; // Center checkbox inside the third column.
+}
+
+.checkbox-label input[type='checkbox'] {
+  margin: 0;
+  vertical-align: middle;
+}
+
+.checkbox-label span {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+}
+
+.table-shell {
+  overflow: hidden;
+}
+
+.shares-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    color: #111827;
+  }
+
+  thead {
+    background: #f9fafb;
+  }
+
+  th {
+    position: relative;
+    font-size: 13px;
+    font-weight: 600;
+    vertical-align: top;
+  }
+
+  tbody tr:hover {
+    background: #f9fafb;
+  }
+}
+
+.sortable {
+  cursor: pointer;
+  padding-right: 34px;
+}
+
+.sort-icon {
+  position: absolute;
+  top: 16px;
+  right: 10px;
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  color: #1e40af;
+}
+
+.numeric {
+  text-align: right !important;
+}
+
+.actions-col {
+  width: 92px;
+  text-align: center !important;
+  white-space: nowrap;
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #4b5563;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #d1d5db;
+}
+
+.status-dot.active {
+  background: #10b981;
+}
+
+.empty-state {
+  padding: 32px;
+  text-align: center !important;
+  color: #6b7280 !important;
+}
+
+@media (max-width: 960px) {
+  .page-header,
+  .toolbar,
+  .controls-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-right {
+    justify-content: space-between;
+  }
+
+  .controls-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    row-gap: 12px;
+  }
+
+  .search-container {
+    max-width: none;
+    width: 100%;
+  }
+
+  .toolbar-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+}

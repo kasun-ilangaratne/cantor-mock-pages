@@ -19,6 +19,9 @@ import { ShareholderTransactionsModalComponent } from './shareholder-transaction
 import { ShareholderFormPageComponent } from './shareholder-form-page/shareholder-form-page.component';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { BankAccountsDialogComponent } from './bank-accounts-dialog/bank-accounts-dialog.component';
+import { AllocatedDividendDialogComponent } from './allocated-dividend-dialog/allocated-dividend-dialog.component';
+import { AdjustedEquityDialogComponent } from './adjusted-equity-dialog/adjusted-equity-dialog.component';
+import { AlternativeCurrencyDialogComponent } from './alternative-currency-dialog/alternative-currency-dialog.component';
 
 const routes: Routes = [
   { path: '', component: ShareClassesComponent },
@@ -47,7 +50,10 @@ const routes: Routes = [
     ShareholderTransactionsModalComponent,
     ShareholderFormPageComponent,
     ConfirmDialogComponent,
-    BankAccountsDialogComponent
+    BankAccountsDialogComponent,
+    AllocatedDividendDialogComponent,
+    AdjustedEquityDialogComponent,
+    AlternativeCurrencyDialogComponent
   ]
 })
 export class ShareClassesModule { }

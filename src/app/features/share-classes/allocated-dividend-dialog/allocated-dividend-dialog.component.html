@@ -1,0 +1,54 @@
+<div class="allocated-dividend-dialog">
+  <h2 mat-dialog-title class="dialog-title">Avsatt utbytte</h2>
+
+  <mat-dialog-content class="dialog-content">
+    <div class="top-actions">
+      <button type="button" class="add-btn" (click)="addRow()">
+        <mat-icon>add_circle_outline</mat-icon>
+        Legg til
+      </button>
+    </div>
+
+    <table class="entries-table">
+      <thead>
+        <tr>
+          <th>Dato</th>
+          <th>Tid</th>
+          <th>Beløp</th>
+          <th class="actions-col">Handlinger</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of entries">
+          <td>
+            <input *ngIf="row._editing" type="text" placeholder="dd.mm.yyyy" [(ngModel)]="row._draft!.date" class="inline-input">
+            <span *ngIf="!row._editing">{{ row.date }}</span>
+          </td>
+          <td>
+            <input *ngIf="row._editing" type="text" placeholder="hh:mm" [(ngModel)]="row._draft!.time" class="inline-input">
+            <span *ngIf="!row._editing">{{ row.time }}</span>
+          </td>
+          <td class="num">
+            <input *ngIf="row._editing" type="number" [(ngModel)]="row._draft!.amount" class="inline-input">
+            <span *ngIf="!row._editing">{{ row.amount | number:'1.0-0' }}</span>
+          </td>
+          <td class="actions-col">
+            <button *ngIf="!row._editing" type="button" class="icon-btn" (click)="startEdit(row)"><mat-icon>edit</mat-icon></button>
+            <button *ngIf="row._editing" type="button" class="icon-btn save" (click)="saveRow(row)"><mat-icon>check</mat-icon></button>
+            <button *ngIf="row._editing" type="button" class="icon-btn cancel" (click)="cancelRow(row)"><mat-icon>close</mat-icon></button>
+            <button type="button" class="icon-btn delete" (click)="deleteRow(row)"><mat-icon>delete</mat-icon></button>
+          </td>
+        </tr>
+        <tr *ngIf="entries.length === 0">
+          <td colspan="4" class="empty">Ingen rader registrert</td>
+        </tr>
+      </tbody>
+    </table>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-cancel" (click)="onCancel()">Avbryt</button>
+    <button type="button" class="btn-save" (click)="onSave()">Lagre</button>
+  </mat-dialog-actions>
+</div>
+

@@ -1,0 +1,239 @@
+.share-form-page {
+  min-height: 100vh;
+  padding: 20px;
+  background: #eef2f8;
+}
+
+.page-header,
+.form-card {
+  background: transparent;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 16px;
+  padding: 0;
+}
+
+.back-btn,
+.secondary-action-btn,
+.cancel-btn,
+.save-btn {
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: none;
+  background: #4b5563;
+  color: white;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.header-content h1 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  color: #111827;
+}
+
+.share-selector {
+  max-width: 420px;
+}
+
+.share-selector-dropdown {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+}
+
+.form-card {
+  padding: 16px;
+  border: 1px solid #dbe2f0;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  color: #111827;
+}
+
+.form-group input,
+.form-group select {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 2px;
+  font-size: 14px;
+  background: white;
+}
+
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #374151;
+}
+
+.inline-checkbox {
+  align-self: end;
+  min-height: 42px;
+}
+
+.share-value-section {
+  margin: 18px 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 2px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.add-row-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 4px;
+  background: #0f3550;
+  color: white;
+  font-weight: 600;
+}
+
+.share-value-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+
+  th,
+  td {
+    border: 1px solid #d1d5db;
+    padding: 0;
+  }
+
+  th {
+    padding: 8px 10px;
+    background: #0f3550;
+    color: white;
+    text-align: left;
+    font-size: 13px;
+  }
+
+  td input,
+  td select {
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    background: white;
+    font-size: 14px;
+  }
+
+  tfoot td {
+    padding: 8px 10px;
+    background: #0f3550;
+    color: white;
+    font-weight: 700;
+  }
+}
+
+.calculated-cell {
+  padding: 8px 10px !important;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.actions-cell {
+  width: 38px;
+}
+
+.delete-row-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: #c2410c;
+}
+
+.bottom-grid {
+  margin-top: 16px;
+}
+
+.align-end {
+  margin-top: auto;
+}
+
+.status-checkbox {
+  margin-top: 16px;
+}
+
+.page-actions {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.secondary-action-btn,
+.cancel-btn,
+.save-btn {
+  min-width: 150px;
+  height: 40px;
+  padding: 0 20px;
+  border: none;
+  background: #0f3550;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.secondary-action-btn {
+  min-width: 180px;
+}
+
+@media (max-width: 900px) {
+  .page-header,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    display: block;
+  }
+}

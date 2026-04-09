@@ -1,0 +1,36 @@
+<div class="alternative-currency-dialog">
+  <h2 mat-dialog-title class="dialog-title">Alternativ valuta</h2>
+
+  <mat-dialog-content class="dialog-content">
+    <div class="row currency-row">
+      <label>Alternativ valuta</label>
+      <select [(ngModel)]="form.currency" class="value-input">
+        <option *ngFor="let c of currencies" [value]="c">{{ c }}</option>
+      </select>
+    </div>
+
+    <div class="year-header">
+      <span></span>
+      <span>2025</span>
+      <span>2024</span>
+    </div>
+
+    <div class="row">
+      <label>Selskapskapital</label>
+      <input type="number" [(ngModel)]="form.shareCapital2025" class="value-input">
+      <input type="number" [(ngModel)]="form.shareCapital2024" class="value-input">
+    </div>
+
+    <div class="row">
+      <label>Unnkalt</label>
+      <input type="number" [(ngModel)]="form.uncalled2025" class="value-input">
+      <input type="number" [(ngModel)]="form.uncalled2024" class="value-input">
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-cancel" (click)="onCancel()">Avbryt</button>
+    <button type="button" class="btn-save" (click)="onSave()">Lagre</button>
+  </mat-dialog-actions>
+</div>
+

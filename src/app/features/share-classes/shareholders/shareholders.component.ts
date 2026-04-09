@@ -17,10 +17,21 @@ export interface Shareholder {
   status: 'Aktiv' | 'Inaktiv';
   percentage2024: number;
   percentage2025: number;
+  /** Share capital amounts when Deltakere uses andeler (pass-through + URL flag). */
+  selskapskapital2024: number;
+  selskapskapital2025: number;
   hasShares: boolean; // Mock flag to determine if shareholder has shares
 }
 
-type SortColumn = 'nr' | 'navn' | 'personnrOrgNr' | 'percentage2024' | 'percentage2025' | null;
+type SortColumn =
+  | 'nr'
+  | 'navn'
+  | 'personnrOrgNr'
+  | 'percentage2024'
+  | 'percentage2025'
+  | 'selskapskapital2024'
+  | 'selskapskapital2025'
+  | null;
 type SortDirection = 'asc' | 'desc' | null;
 
 @Component({
@@ -38,6 +49,10 @@ type SortDirection = 'asc' | 'desc' | null;
   ]
 })
 export class ShareholdersComponent implements OnInit {
+  companyType: 'standard' | 'passThrough' = 'standard';
+  /** Synced with Selskap tab checkbox via `useAndelerDeltakere` query param. */
+  useAndelerForDeltakere = false;
+
   // Header data
   company: string = 'Shiba Group AS';
   year: number = 2025;
@@ -53,6 +68,8 @@ export class ShareholdersComponent implements OnInit {
       status: 'Aktiv',
       percentage2024: 45.5,
       percentage2025: 45.5,
+      selskapskapital2024: 455_000,
+      selskapskapital2025: 455_000,
       hasShares: true
     },
     {
@@ -63,6 +80,8 @@ export class ShareholdersComponent implements OnInit {
       status: 'Aktiv',
       percentage2024: 30.0,
       percentage2025: 30.0,
+      selskapskapital2024: 300_000,
+      selskapskapital2025: 300_000,
       hasShares: true
     },
     {
@@ -73,6 +92,8 @@ export class ShareholdersComponent implements OnInit {
       status: 'Inaktiv',
       percentage2024: 24.5,
       percentage2025: 24.5,
+      selskapskapital2024: 245_000,
+      selskapskapital2025: 245_000,
       hasShares: false
     }
   ];
@@ -98,7 +119,21 @@ export class ShareholdersComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Initialize
+    this.route.queryParamMap.subscribe((params) => {
+      const typeParam = params.get('companyType');
+      this.companyType = typeParam === 'passThrough' ? 'passThrough' : 'standard';
+      const andelerParam = params.get('useAndelerDeltakere');
+      this.useAndelerForDeltakere = andelerParam === '1' || andelerParam === 'true';
+    });
+  }
+
+  get participantsTabLabel(): string {
+    return this.companyType === 'passThrough' ? 'Deltakere' : 'Aksjonærer';
+  }
+
+  /** Pass-through + "Bruk andeler" — show extra Selskapskapital columns after % columns. */
+  get showDeltakereAndelerColumns(): boolean {
+    return this.companyType === 'passThrough' && this.useAndelerForDeltakere;
   }
 
   get filteredShareholders(): Shareholder[] {
@@ -148,9 +183,19 @@ export class ShareholdersComponent implements OnInit {
     return this.filteredShareholders.reduce((sum, sh) => sum + sh.percentage2025, 0);
   }
 
+  get totalSelskapskapital2024(): number {
+    return this.filteredShareholders.reduce((sum, sh) => sum + sh.selskapskapital2024, 0);
+  }
+
+  get totalSelskapskapital2025(): number {
+    return this.filteredShareholders.reduce((sum, sh) => sum + sh.selskapskapital2025, 0);
+  }
+
   get isTotalWarning(): boolean {
-    return Math.abs(this.totalPercentage2024 - 100) > 0.01 || 
-           Math.abs(this.totalPercentage2025 - 100) > 0.01;
+    return (
+      Math.abs(this.totalPercentage2024 - 100) > 0.01 ||
+      Math.abs(this.totalPercentage2025 - 100) > 0.01
+    );
   }
 
   onSort(column: SortColumn): void {
@@ -178,11 +223,25 @@ export class ShareholdersComponent implements OnInit {
   }
 
   onAdd(): void {
-    this.router.navigate(['/mock-share-classes/shareholders/new']);
+    this.router.navigate(['/share-classes/shareholders/new'], {
+      queryParams: {
+        companyType: this.companyType,
+        useAndelerDeltakere:
+          this.companyType === 'passThrough' && this.useAndelerForDeltakere ? '1' : null
+      },
+      queryParamsHandling: 'merge'
+    });
   }
 
   onEdit(shareholder: Shareholder): void {
-    this.router.navigate(['/mock-share-classes/shareholders', shareholder.id]);
+    this.router.navigate(['/share-classes/shareholders', shareholder.id], {
+      queryParams: {
+        companyType: this.companyType,
+        useAndelerDeltakere:
+          this.companyType === 'passThrough' && this.useAndelerForDeltakere ? '1' : null
+      },
+      queryParamsHandling: 'merge'
+    });
   }
 
   onDelete(shareholder: Shareholder): void {
@@ -228,6 +287,15 @@ export class ShareholdersComponent implements OnInit {
     return value.toFixed(1) + '%';
   }
 
+  formatAmount(value: number): string {
+    return new Intl.NumberFormat('no-NO', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    })
+      .format(value)
+      .replace(/,/g, ' ');
+  }
+
   getTotalWarning(year: number): boolean {
     const total = year === 2024 ? this.totalPercentage2024 : this.totalPercentage2025;
     return Math.abs(total - 100) > 0.01;
@@ -242,7 +310,18 @@ export class ShareholdersComponent implements OnInit {
   }
 
   navigateToShareClasses(): void {
-    this.router.navigate(['..'], { relativeTo: this.route });
+    if (this.isShareClassesRoute()) {
+      return;
+    }
+    this.router.navigate(['..'], {
+      relativeTo: this.route,
+      queryParams: {
+        companyType: this.companyType,
+        useAndelerDeltakere:
+          this.companyType === 'passThrough' && this.useAndelerForDeltakere ? '1' : null
+      },
+      queryParamsHandling: 'merge'
+    });
   }
 
   navigateToShareholders(): void {

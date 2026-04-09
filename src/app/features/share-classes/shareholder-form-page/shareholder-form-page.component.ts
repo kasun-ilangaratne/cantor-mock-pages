@@ -23,6 +23,27 @@ export interface ShareholderOption {
   status: 'Aktiv' | 'Inaktiv';
 }
 
+export interface DeltakerTransaksjon {
+  id: string;
+  tidspunkt: string;
+  type: string;
+  tekst: string;
+  andeler: number;
+  andelProsent: number;
+  belop: number;
+  vederlag: number;
+  kostnader: number;
+  kostpris: number;
+  divKorr: number;
+  motpart: string;
+}
+
+export type DeltakerTransaksjonRow = DeltakerTransaksjon & {
+  _editing?: boolean;
+  _isNew?: boolean;
+  _backup?: DeltakerTransaksjon;
+};
+
 @Component({
   selector: 'app-shareholder-form-page',
   standalone: true,
@@ -80,6 +101,71 @@ export class ShareholderFormPageComponent implements OnInit {
   
   kommuner: string[] = ['Oslo', 'Bergen', 'Trondheim', 'Stavanger', 'Bærum'];
   landkoder: string[] = ['NO', 'SE', 'DK', 'FI', 'LK'];
+
+  companyType: 'standard' | 'passThrough' = 'standard';
+  useAndelerForDeltakere = false;
+
+  /** Pass-through participant (Deltaker) — additional fields */
+  postalPlaceOptions: { postnummer: string; poststed: string }[] = [
+    { postnummer: '0001', poststed: 'Oslo' },
+    { postnummer: '5003', poststed: 'Bergen' },
+    { postnummer: '7010', poststed: 'Trondheim' }
+  ];
+  postalPlaceKey = '0001|Oslo';
+  kommunenr = '';
+  kommunenrOptions: { code: string; label: string }[] = [
+    { code: '0301', label: '0301 Oslo' },
+    { code: '4601', label: '4601 Bergen' },
+    { code: '5001', label: '5001 Trondheim' }
+  ];
+  naeringsType = '';
+  naeringsTyperOptions: string[] = [
+    'Helse og omsorg',
+    'Handel',
+    'Industri',
+    'Teknologi',
+    'Annen'
+  ];
+  selskapsandelIB = 25;
+  antallIB = 3;
+  selskapsandelUB = 25;
+  antallUB = 3;
+  brukResultatandel = true;
+  resultatandelProsent = 33;
+  ikkeSkattepliktigTilNorge = false;
+  finansskattepliktig = false;
+  finnmark = false;
+  komplementarIKS = false;
+  overforSelskapsmelding = false;
+
+  deltakerTransaksjonTyper: string[] = ['Kjøp', 'Salg', 'Tilskudd', 'Utbytte', 'Annen'];
+
+  /** Tekst-kolonne (nedtrekk). */
+  deltakerTekstValg: string[] = [
+    'Egenkapitalinnskudd',
+    'Tilbakebetaling av innskudd',
+    'Utbytte',
+    'Kontantuttak',
+    'Annen beskrivelse'
+  ];
+
+  deltakerTransaksjoner: DeltakerTransaksjonRow[] = [
+    {
+      id: 'dt1',
+      tidspunkt: '10.07.2025 15:29',
+      type: 'Kjøp',
+      tekst: 'Egenkapitalinnskudd',
+      andeler: 12,
+      andelProsent: 16.6777,
+      belop: 50000,
+      vederlag: 50000,
+      kostnader: 2000,
+      kostpris: 15000,
+      divKorr: 123,
+      motpart: 'John Doe',
+      _editing: false
+    }
+  ];
 
   // Transaction-related properties
   year: number = 2025;
@@ -204,28 +290,89 @@ export class ShareholderFormPageComponent implements OnInit {
     private cdr: ChangeDetectorRef
   ) {}
 
+  get isDeltakerForm(): boolean {
+    return this.companyType === 'passThrough';
+  }
+
+  get deltakerPageTitle(): string {
+    const name = (this.navn || '').trim();
+    return name ? `Deltaker - ${name}` : 'Deltaker - Navn på deltaker';
+  }
+
   ngOnInit(): void {
     // Load all shareholders for the dropdown first
     this.loadAllShareholders();
     // Initialize filtered list with all shareholders
     this.filteredShareholders = [...this.allShareholders];
-    
-    this.route.params.subscribe(params => {
+
+    this.route.queryParamMap.subscribe(() => {
+      this.syncFromRouteQuery();
+    });
+    this.syncFromRouteQuery();
+
+    this.route.params.subscribe((params) => {
       this.shareholderId = params['id'];
       this.isEdit = this.shareholderId !== 'new' && this.shareholderId !== null;
-      
+      this.syncFromRouteQuery();
+
       if (this.isEdit && this.shareholderId) {
-        // Load shareholder data (mock for now)
         this.loadShareholderData(this.shareholderId);
-        // Set selected shareholder in dropdown - this will set the search control value
         this.updateSelectedShareholder();
       } else {
-        // Initialize for new shareholder
         this.initializeShareClassBalances();
         this.selectedShareholder = null;
         this.shareholderSearchControl = '';
+        if (this.isDeltakerForm) {
+          this.applyDeltakerFieldDefaults();
+        }
       }
     });
+  }
+
+  private syncFromRouteQuery(): void {
+    const q = this.route.snapshot.queryParamMap;
+    this.companyType = q.get('companyType') === 'passThrough' ? 'passThrough' : 'standard';
+    const a = q.get('useAndelerDeltakere');
+    this.useAndelerForDeltakere = a === '1' || a === 'true';
+  }
+
+  private getShareClassesListQueryParams(): {
+    companyType: string;
+    useAndelerDeltakere: string | null;
+  } {
+    return {
+      companyType: this.companyType,
+      useAndelerDeltakere:
+        this.companyType === 'passThrough' && this.useAndelerForDeltakere ? '1' : null
+    };
+  }
+
+  onPostalPlaceChange(key: string): void {
+    const parts = key.split('|');
+    this.postnummer = parts[0] || '';
+    this.poststed = parts[1] || '';
+  }
+
+  private syncPostalPlaceKeyFromFields(): void {
+    this.postalPlaceKey = `${this.postnummer || '0001'}|${this.poststed || 'Oslo'}`;
+  }
+
+  applyDeltakerFieldDefaults(): void {
+    if (!this.postnummer?.trim()) {
+      this.postnummer = '0001';
+    }
+    if (!this.poststed?.trim()) {
+      this.poststed = 'Oslo';
+    }
+    this.selskapsandelIB = 25;
+    this.selskapsandelUB = 25;
+    this.antallIB = 3;
+    this.antallUB = 3;
+    this.brukResultatandel = true;
+    this.resultatandelProsent = 33;
+    this.naeringsType = '';
+    this.kommunenr = this.kommunenrOptions[0]?.code ?? '';
+    this.syncPostalPlaceKeyFromFields();
   }
 
   loadAllShareholders(): void {
@@ -320,8 +467,10 @@ export class ShareholderFormPageComponent implements OnInit {
 
   onShareholderSelected(shareholder: ShareholderOption): void {
     if (shareholder && shareholder.id !== this.shareholderId) {
-      // Navigate to the selected shareholder
-      this.router.navigate(['/mock-share-classes/shareholders', shareholder.id]);
+      this.router.navigate(['/share-classes/shareholders', shareholder.id], {
+        queryParams: this.getShareClassesListQueryParams(),
+        queryParamsHandling: 'merge'
+      });
     }
   }
 
@@ -330,21 +479,20 @@ export class ShareholderFormPageComponent implements OnInit {
   }
 
   loadShareholderData(id: string): void {
+    this.syncFromRouteQuery();
     // Find shareholder in the list first
-    const shareholder = this.allShareholders.find(sh => sh.id === id);
-    
+    const shareholder = this.allShareholders.find((sh) => sh.id === id);
+
     if (shareholder) {
-      // Use data from the shareholder list
       this.navn = shareholder.navn;
       this.personnrOrgNr = shareholder.personnrOrgNr;
       this.status = shareholder.status;
     } else {
-      // Fallback mock data - in real app, fetch from service
       this.navn = 'Sample Shareholder';
       this.personnrOrgNr = '123456789';
       this.status = 'Aktiv';
     }
-    
+
     this.shareholderType = 'Selskap';
     this.adresse = 'Sample Address';
     this.postnummer = '0001';
@@ -353,7 +501,12 @@ export class ShareholderFormPageComponent implements OnInit {
     this.telefon = '12345678';
     this.epost = 'sample@example.com';
     this.landkode = 'NO';
-    
+
+    if (this.isDeltakerForm) {
+      this.applyDeltakerFieldDefaults();
+      this.syncPostalPlaceKeyFromFields();
+    }
+
     this.initializeShareClassBalances();
   }
 
@@ -501,8 +654,7 @@ export class ShareholderFormPageComponent implements OnInit {
   }
 
   onSave(): void {
-    // Save logic here
-    console.log('Saving shareholder:', {
+    const payload: Record<string, unknown> = {
       navn: this.navn,
       personnrOrgNr: this.personnrOrgNr,
       status: this.status,
@@ -516,23 +668,242 @@ export class ShareholderFormPageComponent implements OnInit {
       landkode: this.landkode,
       bankAccounts: this.bankAccounts,
       shareClassBalances: this.shareClassBalances
+    };
+    if (this.isDeltakerForm) {
+      Object.assign(payload, {
+        kommunenr: this.kommunenr,
+        naeringsType: this.naeringsType,
+        selskapsandelIB: this.selskapsandelIB,
+        antallIB: this.antallIB,
+        selskapsandelUB: this.selskapsandelUB,
+        antallUB: this.antallUB,
+        brukResultatandel: this.brukResultatandel,
+        resultatandelProsent: this.resultatandelProsent,
+        ikkeSkattepliktigTilNorge: this.ikkeSkattepliktigTilNorge,
+        finansskattepliktig: this.finansskattepliktig,
+        finnmark: this.finnmark,
+        komplementarIKS: this.komplementarIKS,
+        overforSelskapsmelding: this.overforSelskapsmelding,
+        deltakerTransaksjoner: this.deltakerTransaksjoner.map((r) =>
+          this.snapshotDeltakerRow(r)
+        )
+      });
+    }
+    console.log('Saving shareholder/deltaker:', payload);
+
+    this.router.navigate(['/share-classes/shareholders'], {
+      queryParams: this.getShareClassesListQueryParams(),
+      queryParamsHandling: 'merge'
     });
-    
-    // Navigate back to shareholders list
-    this.router.navigate(['/mock-share-classes/shareholders']);
   }
 
   onCancel(): void {
-    // Navigate back to shareholders list
-    this.router.navigate(['/mock-share-classes/shareholders']);
+    this.router.navigate(['/share-classes/shareholders'], {
+      queryParams: this.getShareClassesListQueryParams(),
+      queryParamsHandling: 'merge'
+    });
   }
 
   onBack(): void {
-    this.router.navigate(['/mock-share-classes/shareholders']);
+    this.router.navigate(['/share-classes/shareholders'], {
+      queryParams: this.getShareClassesListQueryParams(),
+      queryParamsHandling: 'merge'
+    });
   }
 
   setActiveTab(tab: 'basic' | 'transaksjoner'): void {
     this.activeTab = tab;
+  }
+
+  addDeltakerTransaksjon(): void {
+    this.deltakerTransaksjoner.forEach((r) => {
+      if (r._editing) {
+        this.cancelDeltakerTransaksjonEdit(r);
+      }
+    });
+    const row: DeltakerTransaksjonRow = {
+      id: `dt-${Date.now()}`,
+      tidspunkt: '',
+      type: this.deltakerTransaksjonTyper[0],
+      tekst: this.deltakerTekstValg[0],
+      andeler: 0,
+      andelProsent: 0,
+      belop: 0,
+      vederlag: 0,
+      kostnader: 0,
+      kostpris: 0,
+      divKorr: 0,
+      motpart: '',
+      _editing: true,
+      _isNew: true
+    };
+    this.deltakerTransaksjoner.unshift(row);
+    this.isDirty = true;
+  }
+
+  private snapshotDeltakerRow(tx: DeltakerTransaksjonRow): DeltakerTransaksjon {
+    return {
+      id: tx.id,
+      tidspunkt: tx.tidspunkt,
+      type: tx.type,
+      tekst: tx.tekst,
+      andeler: tx.andeler,
+      andelProsent: tx.andelProsent,
+      belop: tx.belop,
+      vederlag: tx.vederlag,
+      kostnader: tx.kostnader,
+      kostpris: tx.kostpris,
+      divKorr: tx.divKorr,
+      motpart: tx.motpart
+    };
+  }
+
+  startEditDeltakerTransaksjon(tx: DeltakerTransaksjonRow): void {
+    if (tx._editing) {
+      return;
+    }
+    this.deltakerTransaksjoner.forEach((r) => {
+      if (r !== tx && r._editing) {
+        this.cancelDeltakerTransaksjonEdit(r);
+      }
+    });
+    tx._backup = this.snapshotDeltakerRow(tx);
+    tx._editing = true;
+  }
+
+  saveDeltakerTransaksjonEdit(tx: DeltakerTransaksjonRow): void {
+    this.onDeltakerTidspunktBlur(tx);
+    tx._editing = false;
+    tx._backup = undefined;
+    tx._isNew = false;
+    this.isDirty = true;
+  }
+
+  trackByDeltakerTxId(_index: number, tx: DeltakerTransaksjonRow): string {
+    return tx.id;
+  }
+
+  cancelDeltakerTransaksjonEdit(tx: DeltakerTransaksjonRow): void {
+    if (tx._isNew) {
+      const idx = this.deltakerTransaksjoner.indexOf(tx);
+      if (idx >= 0) {
+        this.deltakerTransaksjoner.splice(idx, 1);
+      }
+      this.isDirty = true;
+      return;
+    }
+    if (tx._backup) {
+      const b = tx._backup;
+      tx.tidspunkt = b.tidspunkt;
+      tx.type = b.type;
+      tx.tekst = b.tekst;
+      tx.andeler = b.andeler;
+      tx.andelProsent = b.andelProsent;
+      tx.belop = b.belop;
+      tx.vederlag = b.vederlag;
+      tx.kostnader = b.kostnader;
+      tx.kostpris = b.kostpris;
+      tx.divKorr = b.divKorr;
+      tx.motpart = b.motpart;
+    }
+    tx._editing = false;
+    tx._backup = undefined;
+  }
+
+  onDeltakerTidspunktBlur(tx: DeltakerTransaksjonRow): void {
+    tx.tidspunkt = this.normalizeDeltakerTidspunkt(tx.tidspunkt);
+    this.isDirty = true;
+  }
+
+  private normalizeDeltakerTidspunkt(value: string): string {
+    const trimmed = (value || '').trim();
+    if (!trimmed) {
+      return '';
+    }
+    const full = /^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})$/;
+    if (full.test(trimmed)) {
+      return trimmed;
+    }
+    const dateOnly = /^(\d{2})\.(\d{2})\.(\d{4})$/;
+    const m = trimmed.match(dateOnly);
+    if (m) {
+      return `${m[1]}.${m[2]}.${m[3]} 00:00`;
+    }
+    return trimmed;
+  }
+
+  removeDeltakerTransaksjon(row: DeltakerTransaksjonRow): void {
+    const idx = this.deltakerTransaksjoner.findIndex((r) => r.id === row.id);
+    if (idx >= 0) {
+      this.deltakerTransaksjoner.splice(idx, 1);
+      this.isDirty = true;
+    }
+  }
+
+  onDeltakerTransaksjonFieldChange(): void {
+    this.isDirty = true;
+  }
+
+  get deltakerSumAndeler(): number {
+    return this.deltakerTransaksjoner.reduce((s, t) => s + (Number(t.andeler) || 0), 0);
+  }
+
+  get deltakerSnittAndelProsent(): number {
+    const n = this.deltakerTransaksjoner.length;
+    if (!n) {
+      return 0;
+    }
+    const sum = this.deltakerTransaksjoner.reduce((s, t) => s + (Number(t.andelProsent) || 0), 0);
+    return sum / n;
+  }
+
+  get deltakerSumBelop(): number {
+    return this.deltakerTransaksjoner.reduce((s, t) => s + (Number(t.belop) || 0), 0);
+  }
+
+  get deltakerSumVederlag(): number {
+    return this.deltakerTransaksjoner.reduce((s, t) => s + (Number(t.vederlag) || 0), 0);
+  }
+
+  get deltakerSumKostnader(): number {
+    return this.deltakerTransaksjoner.reduce((s, t) => s + (Number(t.kostnader) || 0), 0);
+  }
+
+  get deltakerSumKostpris(): number {
+    return this.deltakerTransaksjoner.reduce((s, t) => s + (Number(t.kostpris) || 0), 0);
+  }
+
+  get deltakerSumDivKorr(): number {
+    return this.deltakerTransaksjoner.reduce((s, t) => s + (Number(t.divKorr) || 0), 0);
+  }
+
+  /** Hele kroner — norsk gruppering (50 000). */
+  formatDeltakerKr(value: number): string {
+    if (value == null || Number.isNaN(Number(value))) {
+      return '—';
+    }
+    const n = Math.round(Number(value));
+    return new Intl.NumberFormat('no-NO', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    })
+      .format(n)
+      .replace(/,/g, ' ');
+  }
+
+  formatDeltakerHeleTall(value: number): string {
+    return this.formatDeltakerKr(value);
+  }
+
+  /** Andel % med komma som desimaltegn (inntil 4 desimaler). */
+  formatDeltakerAndelProsent(value: number): string {
+    if (value == null || Number.isNaN(Number(value))) {
+      return '—';
+    }
+    return new Intl.NumberFormat('no-NO', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 4
+    }).format(Number(value));
   }
 
   getTotalRow(): ShareClassBalance {

@@ -5,7 +5,9 @@
       <span>Tilbake</span>
     </button>
     <div class="header-content">
-      <h2 class="page-title">{{ navn || 'Aksjonær' }}</h2>
+      <h2 class="page-title">
+        {{ isDeltakerForm ? deltakerPageTitle : (navn || 'Aksjonær') }}
+      </h2>
       <div class="shareholder-selector">
         <div class="search-container">
           <mat-icon class="search-icon">search</mat-icon>
@@ -51,7 +53,7 @@
       class="tab" 
       [class.active]="activeTab === 'basic'"
       (click)="setActiveTab('basic')">
-      Basic Info
+      {{ isDeltakerForm ? 'Grunnleggende informasjon' : 'Basic Info' }}
     </button>
     <button 
       type="button" 
@@ -63,8 +65,146 @@
   </div>
 
   <div class="page-content">
-    <!-- Tab 1: Basic Info -->
-    <div class="tab-content" *ngIf="activeTab === 'basic'">
+    <!-- Tab 1: Deltaker (pass-through) -->
+    <div class="tab-content deltaker-basic-tab" *ngIf="activeTab === 'basic' && isDeltakerForm">
+      <div class="form-section two-column deltaker-grid">
+        <div class="column-left">
+          <div class="form-group">
+            <label>Personnummer/organisasjonsnummer</label>
+            <div class="input-with-icon">
+              <input
+                type="text"
+                class="form-input"
+                [(ngModel)]="personnrOrgNr"
+                placeholder="Personnummer eller org.nr">
+              <mat-icon class="lookup-icon" (click)="onLookupCompany()" title="Søk">search</mat-icon>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Adresse</label>
+            <input type="text" class="form-input" [(ngModel)]="adresse" placeholder="Adresse">
+          </div>
+          <div class="form-group">
+            <label>Postnummer/ -sted</label>
+            <select
+              class="form-input"
+              [(ngModel)]="postalPlaceKey"
+              (ngModelChange)="onPostalPlaceChange($event)">
+              <option
+                *ngFor="let p of postalPlaceOptions"
+                [value]="p.postnummer + '|' + p.poststed">
+                {{ p.postnummer }} {{ p.poststed }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Kommunenr</label>
+            <select class="form-input" [(ngModel)]="kommunenr">
+              <option value="">Velg kommunenr</option>
+              <option *ngFor="let k of kommunenrOptions" [value]="k.code">{{ k.label }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Bankkonto</label>
+            <div class="input-with-button">
+              <input
+                type="text"
+                class="form-input"
+                [value]="getBankAccountsDisplayText()"
+                readonly
+                placeholder="Ingen bankkontoer registrert">
+              <button type="button" class="details-btn" (click)="openBankAccountsDialog()">Detaljer</button>
+            </div>
+          </div>
+        </div>
+        <div class="column-right">
+          <div class="form-group">
+            <label>Navn</label>
+            <input type="text" class="form-input" [(ngModel)]="navn" placeholder="Navn">
+          </div>
+          <div class="form-group">
+            <label>Telefon</label>
+            <input type="text" class="form-input" [(ngModel)]="telefon" placeholder="Telefon">
+          </div>
+          <div class="form-group">
+            <label>E-post</label>
+            <input type="email" class="form-input" [(ngModel)]="epost" placeholder="E-post">
+          </div>
+          <div class="form-group">
+            <label>Næringstype</label>
+            <select class="form-input" [(ngModel)]="naeringsType">
+              <option value="">Velg næringstype</option>
+              <option *ngFor="let n of naeringsTyperOptions" [value]="n">{{ n }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section deltaker-stake-section">
+        <div class="deltaker-stake-grid">
+          <div class="form-group percent-field">
+            <label>Selskapsandel IB</label>
+            <div class="input-with-suffix">
+              <input type="number" class="form-input" [(ngModel)]="selskapsandelIB" step="0.0001">
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Antall IB</label>
+            <input type="number" class="form-input" [(ngModel)]="antallIB" min="0" step="1">
+          </div>
+          <div class="form-group percent-field">
+            <label>Selskapsandel UB</label>
+            <div class="input-with-suffix">
+              <input type="number" class="form-input" [(ngModel)]="selskapsandelUB" step="0.0001">
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Antall UB</label>
+            <input type="number" class="form-input" [(ngModel)]="antallUB" min="0" step="1">
+          </div>
+        </div>
+        <div class="form-group resultatandel-row">
+          <label class="inline-check">
+            <input type="checkbox" [(ngModel)]="brukResultatandel">
+            <span>Bruk Resultatandel</span>
+          </label>
+          <div class="input-with-suffix tight" *ngIf="brukResultatandel">
+            <input type="number" class="form-input" [(ngModel)]="resultatandelProsent" min="0" max="100" step="0.1">
+            <span class="suffix">%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section deltaker-flags-section">
+        <div class="deltaker-flag-grid">
+          <label class="inline-check">
+            <input type="checkbox" [(ngModel)]="ikkeSkattepliktigTilNorge">
+            <span>Ikke skattepliktig til Norge</span>
+          </label>
+          <label class="inline-check">
+            <input type="checkbox" [(ngModel)]="finansskattepliktig">
+            <span>Finansskattepliktig</span>
+          </label>
+          <label class="inline-check">
+            <input type="checkbox" [(ngModel)]="finnmark">
+            <span>Finnmark</span>
+          </label>
+          <label class="inline-check">
+            <input type="checkbox" [(ngModel)]="komplementarIKS">
+            <span>Komplementar i KS</span>
+          </label>
+          <label class="inline-check wide">
+            <input type="checkbox" [(ngModel)]="overforSelskapsmelding">
+            <span>Overfør til selskapsmelding uavhengig av andel</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 1: Basic Info (aksjonær) -->
+    <div class="tab-content" *ngIf="activeTab === 'basic' && !isDeltakerForm">
       <!-- Shareholder Type Selection -->
       <div class="form-section">
         <div class="form-group type-selector-group">
@@ -283,8 +423,244 @@
       </div>
     </div>
 
-    <!-- Tab 2: Transaksjoner -->
-    <div class="tab-content" *ngIf="activeTab === 'transaksjoner'">
+    <!-- Tab 2: Transaksjoner (deltaker) — same .section/.data-table patterns as aksjonær -->
+    <div class="tab-content deltaker-transaksjoner-tab" *ngIf="activeTab === 'transaksjoner' && isDeltakerForm">
+      <div class="section deltaker-tx-section">
+        <div class="section-header">
+          <h3>Transaksjoner</h3>
+          <div class="section-actions">
+            <button type="button" class="add-btn" (click)="addDeltakerTransaksjon()">
+              <mat-icon>add</mat-icon>
+              Legge til
+            </button>
+          </div>
+        </div>
+
+        <div class="deltaker-transaksjoner-scroll">
+          <table class="data-table deltaker-tx-data-table" lang="no">
+            <thead>
+              <tr>
+                <th>Tidspunkt</th>
+                <th>Type</th>
+                <th>Tekst</th>
+                <th>Andeler</th>
+                <th>Andel (%)</th>
+                <th>Beløp</th>
+                <th>Vederlag</th>
+                <th>Kostnader</th>
+                <th>Kostpris</th>
+                <th>Div. korr.</th>
+                <th>Motpart</th>
+                <th class="actions-col" title="Handlinger"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="let tx of deltakerTransaksjoner; trackBy: trackByDeltakerTxId"
+                [class.editing]="tx._editing">
+                <td>
+                  <span *ngIf="!tx._editing" class="deltaker-cell-readonly">{{ tx.tidspunkt || '—' }}</span>
+                  <input
+                    *ngIf="tx._editing"
+                    type="text"
+                    class="table-input"
+                    [(ngModel)]="tx.tidspunkt"
+                    (blur)="onDeltakerTidspunktBlur(tx)"
+                    (ngModelChange)="onDeltakerTransaksjonFieldChange()"
+                    placeholder="dd.mm.yyyy hh:mm"
+                    autocomplete="off">
+                </td>
+                <td>
+                  <span *ngIf="!tx._editing" class="deltaker-cell-readonly">{{ tx.type }}</span>
+                  <select
+                    *ngIf="tx._editing"
+                    class="table-input"
+                    [(ngModel)]="tx.type"
+                    (ngModelChange)="onDeltakerTransaksjonFieldChange()">
+                    <option *ngFor="let t of deltakerTransaksjonTyper" [value]="t">{{ t }}</option>
+                  </select>
+                </td>
+                <td>
+                  <span *ngIf="!tx._editing" class="deltaker-cell-readonly">{{ tx.tekst }}</span>
+                  <select
+                    *ngIf="tx._editing"
+                    class="table-input"
+                    [(ngModel)]="tx.tekst"
+                    (ngModelChange)="onDeltakerTransaksjonFieldChange()">
+                    <option *ngFor="let s of deltakerTekstValg" [value]="s">{{ s }}</option>
+                  </select>
+                </td>
+                <td>
+                  <span *ngIf="!tx._editing" class="deltaker-cell-readonly deltaker-cell-num">{{ tx.andeler }}</span>
+                  <input
+                    *ngIf="tx._editing"
+                    type="number"
+                    class="table-input table-input-numeric"
+                    [(ngModel)]="tx.andeler"
+                    (ngModelChange)="onDeltakerTransaksjonFieldChange()"
+                    min="0"
+                    step="1"
+                    inputmode="numeric">
+                </td>
+                <td>
+                  <span *ngIf="!tx._editing" class="deltaker-cell-readonly deltaker-cell-num">
+                    {{ formatDeltakerAndelProsent(tx.andelProsent) }}
+                  </span>
+                  <input
+                    *ngIf="tx._editing"
+                    type="number"
+                    class="table-input table-input-numeric"
+                    [(ngModel)]="tx.andelProsent"
+                    (ngModelChange)="onDeltakerTransaksjonFieldChange()"
+                    step="0.0001"
+                    inputmode="decimal">
+                </td>
+                <td>
+                  <span *ngIf="!tx._editing" class="deltaker-cell-readonly deltaker-cell-num">
+                    {{ formatDeltakerKr(tx.belop) }}
+                  </span>
+                  <input
+                    *ngIf="tx._editing"
+                    type="number"
+                    class="table-input table-input-numeric"
+                    [(ngModel)]="tx.belop"
+                    (ngModelChange)="onDeltakerTransaksjonFieldChange()"
+                    min="0"
+                    step="1"
+                    inputmode="numeric">
+                </td>
+                <td>
+                  <span *ngIf="!tx._editing" class="deltaker-cell-readonly deltaker-cell-num">
+                    {{ formatDeltakerKr(tx.vederlag) }}
+                  </span>
+                  <input
+                    *ngIf="tx._editing"
+                    type="number"
+                    class="table-input table-input-numeric"
+                    [(ngModel)]="tx.vederlag"
+                    (ngModelChange)="onDeltakerTransaksjonFieldChange()"
+                    min="0"
+                    step="1"
+                    inputmode="numeric">
+                </td>
+                <td>
+                  <span *ngIf="!tx._editing" class="deltaker-cell-readonly deltaker-cell-num">
+                    {{ formatDeltakerKr(tx.kostnader) }}
+                  </span>
+                  <input
+                    *ngIf="tx._editing"
+                    type="number"
+                    class="table-input table-input-numeric"
+                    [(ngModel)]="tx.kostnader"
+                    (ngModelChange)="onDeltakerTransaksjonFieldChange()"
+                    min="0"
+                    step="1"
+                    inputmode="numeric">
+                </td>
+                <td>
+                  <span *ngIf="!tx._editing" class="deltaker-cell-readonly deltaker-cell-num">
+                    {{ formatDeltakerKr(tx.kostpris) }}
+                  </span>
+                  <input
+                    *ngIf="tx._editing"
+                    type="number"
+                    class="table-input table-input-numeric"
+                    [(ngModel)]="tx.kostpris"
+                    (ngModelChange)="onDeltakerTransaksjonFieldChange()"
+                    min="0"
+                    step="1"
+                    inputmode="numeric">
+                </td>
+                <td>
+                  <span *ngIf="!tx._editing" class="deltaker-cell-readonly deltaker-cell-num">
+                    {{ formatDeltakerKr(tx.divKorr) }}
+                  </span>
+                  <input
+                    *ngIf="tx._editing"
+                    type="number"
+                    class="table-input table-input-numeric"
+                    [(ngModel)]="tx.divKorr"
+                    (ngModelChange)="onDeltakerTransaksjonFieldChange()"
+                    step="1"
+                    inputmode="numeric">
+                </td>
+                <td>
+                  <span *ngIf="!tx._editing" class="deltaker-cell-readonly">{{ tx.motpart || '—' }}</span>
+                  <input
+                    *ngIf="tx._editing"
+                    type="text"
+                    class="table-input"
+                    [(ngModel)]="tx.motpart"
+                    (ngModelChange)="onDeltakerTransaksjonFieldChange()"
+                    placeholder="Navn"
+                    autocomplete="off">
+                </td>
+                <td class="actions-col deltaker-tx-actions">
+                  <ng-container *ngIf="!tx._editing">
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      (click)="startEditDeltakerTransaksjon(tx)"
+                      title="Rediger">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      (click)="removeDeltakerTransaksjon(tx)"
+                      title="Slett">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </ng-container>
+                  <ng-container *ngIf="tx._editing">
+                    <button
+                      type="button"
+                      class="icon-btn save-btn"
+                      (click)="saveDeltakerTransaksjonEdit(tx)"
+                      title="Lagre">
+                      <mat-icon>check</mat-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      (click)="cancelDeltakerTransaksjonEdit(tx)"
+                      title="Avbryt">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      (click)="removeDeltakerTransaksjon(tx)"
+                      title="Slett">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </ng-container>
+                </td>
+              </tr>
+              <tr *ngIf="deltakerTransaksjoner.length === 0">
+                <td colspan="12" class="empty-deltaker-tx">Ingen transaksjoner registrert. Klikk «Legge til».</td>
+              </tr>
+            </tbody>
+            <tfoot *ngIf="deltakerTransaksjoner.length > 0">
+              <tr class="summary-row">
+                <td colspan="3" class="summary-label">Sum</td>
+                <td class="summary-value">{{ formatDeltakerHeleTall(deltakerSumAndeler) }}</td>
+                <td class="summary-value">{{ formatDeltakerAndelProsent(deltakerSnittAndelProsent) }}</td>
+                <td class="summary-value">{{ formatDeltakerKr(deltakerSumBelop) }}</td>
+                <td class="summary-value">{{ formatDeltakerKr(deltakerSumVederlag) }}</td>
+                <td class="summary-value">{{ formatDeltakerKr(deltakerSumKostnader) }}</td>
+                <td class="summary-value">{{ formatDeltakerKr(deltakerSumKostpris) }}</td>
+                <td class="summary-value">{{ formatDeltakerKr(deltakerSumDivKorr) }}</td>
+                <td colspan="2"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Transaksjoner (aksjonær) -->
+    <div class="tab-content" *ngIf="activeTab === 'transaksjoner' && !isDeltakerForm">
       <!-- Top Row: Year, Filters, Balance -->
       <div class="top-controls">
         <div class="controls-left">
@@ -481,7 +857,6 @@
                 <div class="detail-footer-actions">
                   <button type="button" class="cancel-btn" (click)="closeDividendDetailPanel()">Avbryt</button>
                   <button type="button" class="save-btn" (click)="saveNewDividend()">Lagre</button>
-                  <button type="button" class="save-next-btn" (click)="saveAndNextDividend()">Lagre og neste</button>
                 </div>
               </div>
             </div>
@@ -947,7 +1322,6 @@
               <div class="detail-footer-actions">
                 <button type="button" class="cancel-btn" (click)="closeTransactionDetailPanel()">Avbryt</button>
                 <button type="button" class="save-btn" (click)="saveNewTransaction()">Lagre</button>
-                <button type="button" class="save-next-btn" (click)="saveAndNextTransaction()">Lagre og neste</button>
               </div>
             </div>
           </div>

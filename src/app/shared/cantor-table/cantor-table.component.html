@@ -1,0 +1,449 @@
+<!-- Cantor Table Component Template -->
+<div class="ct-wrapper" [style.height]="height" role="grid" [attr.aria-rowcount]="viewRows().length">
+  
+  <!-- Toolbar -->
+  <div class="ct-toolbar">
+    <div class="ct-toolbar-left">
+      <ng-content select="[slot=toolbar-left]"></ng-content>
+    </div>
+    
+    <div class="ct-toolbar-center">
+      <div class="ct-search-container">
+        <input 
+          type="search" 
+          class="ct-search-input"
+          placeholder="Quick search across all columns..."
+          [ngModel]="quickFilter()"
+          (ngModelChange)="quickFilter.set($event || '')"
+          aria-label="Quick search">
+        <span class="ct-search-icon">🔍</span>
+      </div>
+      
+      <button 
+        type="button" 
+        class="ct-btn ct-btn-secondary"
+        (click)="clearFilters()"
+        [disabled]="getFilterCount() === 0"
+        title="Clear all filters">
+        Clear Filters
+      </button>
+      
+      <button 
+        type="button" 
+        class="ct-btn ct-btn-secondary"
+        (click)="exportCsv()"
+        title="Export to CSV">
+        Export CSV
+      </button>
+      
+      <button 
+        type="button" 
+        class="ct-btn ct-btn-secondary"
+        (click)="showColumnChooser.set(true)"
+        title="Show/hide columns">
+        Columns
+      </button>
+    </div>
+    
+    <div class="ct-toolbar-right">
+      <ng-content select="[slot=toolbar-right]"></ng-content>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="ct-header-container">
+    <div class="ct-header" 
+         cdkDropList 
+         cdkDropListOrientation="horizontal"
+         (cdkDropListDropped)="onColumnReordered($event)">
+      
+      <!-- Selection checkbox column -->
+      <div class="ct-header-cell ct-selection-header" *ngIf="selection === 'multiple'">
+        <input 
+          type="checkbox" 
+          class="ct-checkbox"
+        [checked]="getSelectedCount() === viewRows().length && viewRows().length > 0"
+        [indeterminate]="getSelectedCount() > 0 && getSelectedCount() < viewRows().length"
+          (change)="$any($event.target).checked ? selectAll() : clearSelection()"
+          aria-label="Select all rows">
+      </div>
+
+      <!-- Column headers -->
+      <div class="ct-header-cell" 
+           *ngFor="let col of viewColumns(); trackBy: trackColumn; let colIndex = index"
+           [style.width.px]="col.width"
+           [style.min-width.px]="col.width"
+           [style.max-width.px]="col.width"
+           [class.ct-pinned-left]="col.pinnedLeft"
+           [style.left.px]="col._left"
+           cantorResizableColumn
+           [width]="col.width || 120"
+           cdkDrag
+           cdkDragLockAxis="x">
+        
+        <div class="ct-header-content" 
+             (click)="toggleSort(col, $event)"
+             [attr.aria-sort]="getAriaSort(col)"
+             [class.ct-sortable]="col.sortable !== false"
+             role="columnheader"
+             tabindex="0"
+             [attr.aria-label]="getColumnAriaLabel(col)">
+          
+          <span class="ct-header-text">{{ col.header || col.field }}</span>
+          <span class="ct-sort-indicator" *ngIf="getSortIndicator(col)">
+            {{ getSortIndicator(col) }}
+          </span>
+        </div>
+
+        <!-- Resize handle -->
+        <div class="ct-resize-handle"
+             cantorResizeHandle
+             [field]="getFieldAsString(col.field)"
+             [minWidth]="col.minWidth || 50"
+             [maxWidth]="col.maxWidth || 500"
+             [currentWidth]="col.width || 120"
+             (resizing)="setColumnWidth($event.field, $event.width)"
+             (autoSize)="autoSizeColumn($event)">
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter row -->
+    <div class="ct-filter-row" *ngIf="hasFilters()">
+      
+      <!-- Empty cell for selection column -->
+      <div class="ct-filter-cell ct-selection-filter" *ngIf="selection === 'multiple'">
+      </div>
+
+      <!-- Filter inputs for each column -->
+      <div class="ct-filter-cell" 
+           *ngFor="let col of viewColumns(); trackBy: trackColumn"
+           [style.width.px]="col.width"
+           [style.min-width.px]="col.width"
+           [style.max-width.px]="col.width"
+           [class.ct-pinned-left]="col.pinnedLeft"
+           [style.left.px]="col._left">
+        
+        <div class="ct-filter-content" *ngIf="col.filter !== false">
+          
+          <!-- Text filter -->
+          <div class="ct-text-filter" *ngIf="col.filter === 'text' || !col.filter">
+            <select class="ct-filter-operator" 
+                    #textOp 
+                    (change)="setColumnFilter(getFieldAsString(col.field), textOp.value, textInput.value)"
+                    aria-label="Text filter operator">
+              <option value="contains">Contains</option>
+              <option value="equals">Equals</option>
+              <option value="startsWith">Starts with</option>
+              <option value="endsWith">Ends with</option>
+              <option value="notContains">Not contains</option>
+            </select>
+            <input type="text" 
+                   class="ct-filter-input"
+                   #textInput
+                   placeholder="Filter..."
+                   (input)="setColumnFilter(getFieldAsString(col.field), textOp.value, textInput.value)"
+                   [attr.aria-label]="getFilterAriaLabel(col)">
+          </div>
+
+          <!-- Number filter -->
+          <div class="ct-number-filter" *ngIf="col.filter === 'number'">
+            <select class="ct-filter-operator" 
+                    #numOp 
+                    (change)="onNumberFilterChange(getFieldAsString(col.field), numOp.value, numInput.value)"
+                    aria-label="Number filter operator">
+              <option value="=">=</option>
+              <option value="!=">≠</option>
+              <option value=">">></option>
+              <option value=">=">=</option>
+              <option value="<"><</option>
+              <option value="<=">≤</option>
+              <option value="between">Between</option>
+            </select>
+            <input type="number" 
+                   class="ct-filter-input"
+                   #numInput
+                   placeholder="Value..."
+                   (input)="onNumberFilterChange(getFieldAsString(col.field), numOp.value, numInput.value)"
+                   [attr.aria-label]="getFilterAriaLabel(col)">
+            <input type="number" 
+                   class="ct-filter-input ct-filter-input-secondary"
+                   #numInput2
+                   placeholder="To..."
+                   *ngIf="numOp.value === 'between'"
+                   (input)="onNumberFilterChange(getFieldAsString(col.field), numOp.value, numInput.value)"
+                   aria-label="Filter range end value">
+          </div>
+
+          <!-- Date filter -->
+          <div class="ct-date-filter" *ngIf="col.filter === 'date'">
+            <select class="ct-filter-operator" 
+                    #dateOp 
+                    (change)="onDateFilterChange(getFieldAsString(col.field), dateOp.value, dateInput.value)"
+                    aria-label="Date filter operator">
+              <option value="=">On</option>
+              <option value="!=">Not on</option>
+              <option value=">">After</option>
+              <option value=">=">On or after</option>
+              <option value="<">Before</option>
+              <option value="<=">On or before</option>
+              <option value="between">Between</option>
+            </select>
+            <input type="date" 
+                   class="ct-filter-input"
+                   #dateInput
+                   (input)="onDateFilterChange(getFieldAsString(col.field), dateOp.value, dateInput.value)"
+                   [attr.aria-label]="getFilterAriaLabel(col)">
+            <input type="date" 
+                   class="ct-filter-input ct-filter-input-secondary"
+                   #dateInput2
+                   *ngIf="dateOp.value === 'between'"
+                   (input)="onDateFilterChange(getFieldAsString(col.field), dateOp.value, dateInput.value)"
+                   aria-label="Filter date range end">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Virtual scrolling body -->
+  <cdk-virtual-scroll-viewport 
+    *ngIf="mode === 'virtual'" 
+    itemSize="40" 
+    class="ct-viewport"
+    #viewport>
+    
+    <div class="ct-row" 
+         *cdkVirtualFor="let row of viewRows(); let rowIndex = index; trackBy: trackRow"
+         [class.ct-row-selected]="isRowSelected(rowIndex)"
+         [class.ct-row-even]="rowIndex % 2 === 0"
+         [class.ct-row-odd]="rowIndex % 2 === 1"
+         (click)="onRowClick(rowIndex, $event)"
+         role="row"
+         [attr.aria-rowindex]="rowIndex + 1"
+         [attr.aria-selected]="isRowSelected(rowIndex)">
+      
+      <!-- Selection checkbox -->
+      <div class="ct-cell ct-selection-cell" *ngIf="selection === 'multiple'">
+        <input 
+          type="checkbox" 
+          class="ct-checkbox"
+          [checked]="isRowSelected(rowIndex)"
+          (click)="$event.stopPropagation()"
+          (change)="onCheckboxChange($event, rowIndex)"
+          [attr.aria-label]="'Select row ' + (rowIndex + 1)">
+      </div>
+
+      <!-- Data cells -->
+      <div class="ct-cell" 
+           *ngFor="let col of viewColumns(); trackBy: trackColumn; let colIndex = index"
+           [style.width.px]="col.width"
+           [style.min-width.px]="col.width"
+           [style.max-width.px]="col.width"
+           [class.ct-pinned-left]="col.pinnedLeft"
+           [style.left.px]="col._left"
+           [class.ct-cell-focused]="isCellFocused(rowIndex, colIndex)"
+           [class.ct-cell-editable]="col.editable"
+           (click)="onCellClick(rowIndex, colIndex, $event)"
+           (dblclick)="startEdit(rowIndex, col)"
+           role="gridcell"
+           [attr.aria-describedby]="getFieldAsString(col.field) + '-header'"
+           tabindex="0">
+        
+        <!-- Cell editor -->
+        <div class="ct-cell-editor" *ngIf="isCellEditing(rowIndex, colIndex)">
+          
+          <!-- Text editor -->
+          <input 
+            *ngIf="!col.editor || col.editor === 'text'"
+            type="text"
+            class="ct-editor-input"
+            [ngModel]="editingValue()"
+            (ngModelChange)="editingValue.set($event)"
+            (keydown.enter)="commitEdit()"
+            (keydown.escape)="cancelEdit()"
+            (blur)="commitEdit()">
+          
+          <!-- Number editor -->
+          <input 
+            *ngIf="col.editor === 'number'"
+            type="number"
+            class="ct-editor-input"
+            [ngModel]="editingValue()"
+            (ngModelChange)="editingValue.set($event)"
+            (keydown.enter)="commitEdit()"
+            (keydown.escape)="cancelEdit()"
+            (blur)="commitEdit()">
+          
+          <!-- Date editor -->
+          <input 
+            *ngIf="col.editor === 'date'"
+            type="date"
+            class="ct-editor-input"
+            [ngModel]="editingValue()"
+            (ngModelChange)="editingValue.set($event)"
+            (keydown.enter)="commitEdit()"
+            (keydown.escape)="cancelEdit()"
+            (blur)="commitEdit()">
+          
+          <!-- Select editor -->
+          <select 
+            *ngIf="col.editor === 'select'"
+            class="ct-editor-select"
+            [ngModel]="editingValue()"
+            (ngModelChange)="editingValue.set($event)"
+            (keydown.enter)="commitEdit()"
+            (keydown.escape)="cancelEdit()"
+            (blur)="commitEdit()">
+            <option *ngFor="let option of col.options" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+          
+          <!-- Checkbox editor -->
+          <input 
+            *ngIf="col.editor === 'checkbox'"
+            type="checkbox"
+            class="ct-editor-checkbox"
+            [ngModel]="isEditingValueTrue()"
+            (ngModelChange)="editingValue.set($event)"
+            (keydown.enter)="commitEdit()"
+            (keydown.escape)="cancelEdit()"
+            (blur)="commitEdit()">
+        </div>
+        
+        <!-- Cell display -->
+        <div class="ct-cell-display" *ngIf="!isCellEditing(rowIndex, colIndex)">
+          {{ displayCell(row, col) }}
+        </div>
+      </div>
+    </div>
+  </cdk-virtual-scroll-viewport>
+
+  <!-- Paged body -->
+  <div class="ct-paged-body" *ngIf="mode === 'paged'">
+    <div class="ct-table-body">
+      
+      <div class="ct-row" 
+           *ngFor="let row of viewRows(); let rowIndex = index; trackBy: trackRow"
+           [class.ct-row-selected]="isRowSelected(rowIndex)"
+           [class.ct-row-even]="rowIndex % 2 === 0"
+           [class.ct-row-odd]="rowIndex % 2 === 1"
+           (click)="onRowClick(rowIndex, $event)"
+           role="row"
+           [attr.aria-rowindex]="rowIndex + 1"
+           [attr.aria-selected]="isRowSelected(rowIndex)">
+        
+        <!-- Selection checkbox -->
+        <div class="ct-cell ct-selection-cell" *ngIf="selection === 'multiple'">
+          <input 
+            type="checkbox" 
+            class="ct-checkbox"
+            [checked]="isRowSelected(rowIndex)"
+          (click)="$event.stopPropagation()"
+          (change)="onCheckboxChange($event, rowIndex)"
+            [attr.aria-label]="'Select row ' + (rowIndex + 1)">
+        </div>
+
+        <!-- Data cells -->
+        <div class="ct-cell" 
+             *ngFor="let col of viewColumns(); trackBy: trackColumn; let colIndex = index"
+             [style.width.px]="col.width"
+             [style.min-width.px]="col.width"
+             [style.max-width.px]="col.width"
+             [class.ct-pinned-left]="col.pinnedLeft"
+             [style.left.px]="col._left"
+             [class.ct-cell-focused]="isCellFocused(rowIndex, colIndex)"
+             [class.ct-cell-editable]="col.editable"
+             (click)="onCellClick(rowIndex, colIndex, $event)"
+             (dblclick)="startEdit(rowIndex, col)"
+             role="gridcell"
+             [attr.aria-describedby]="getFieldAsString(col.field) + '-header'"
+             tabindex="0">
+          
+          <!-- Same cell content as virtual scroll -->
+          <div class="ct-cell-editor" *ngIf="isCellEditing(rowIndex, colIndex)">
+            <!-- Editor content same as above -->
+          </div>
+          
+          <div class="ct-cell-display" *ngIf="!isCellEditing(rowIndex, colIndex)">
+            {{ displayCell(row, col) }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="ct-pagination" *ngIf="totalPages() > 1">
+      <div class="ct-pagination-info">
+        Page {{ currentPage() + 1 }} of {{ totalPages() }} 
+        ({{ filteredRows().length }} total rows)
+      </div>
+      
+      <div class="ct-pagination-controls">
+        <button 
+          type="button"
+          class="ct-btn ct-btn-sm"
+          [disabled]="currentPage() === 0"
+          (click)="prevPage()"
+          aria-label="Previous page">
+          ‹ Prev
+        </button>
+        
+        <div class="ct-page-numbers">
+          <button 
+            *ngFor="let page of Array(Math.min(totalPages(), 7)); let i = index"
+            type="button"
+            class="ct-btn ct-btn-sm ct-page-btn"
+            [class.ct-page-current]="currentPage() === i"
+            (click)="goToPage(i)"
+            [attr.aria-label]="'Go to page ' + (i + 1)"
+            [attr.aria-current]="currentPage() === i ? 'page' : null">
+            {{ i + 1 }}
+          </button>
+        </div>
+        
+        <button 
+          type="button"
+          class="ct-btn ct-btn-sm"
+          [disabled]="currentPage() >= totalPages() - 1"
+          (click)="nextPage()"
+          aria-label="Next page">
+          Next ›
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Column chooser overlay -->
+  <cantor-column-chooser 
+    *ngIf="showColumnChooser()"
+    [columns]="columnModel()"
+    (close)="showColumnChooser.set(false)"
+    (toggle)="toggleColumnVisibility($event.field, $event.visible)"
+    (pin)="toggleColumnPin($event.field, $event.pinned)">
+  </cantor-column-chooser>
+
+  <!-- Loading/Empty states -->
+  <div class="ct-empty-state" *ngIf="viewRows().length === 0 && rows.length > 0">
+    <div class="ct-empty-icon">🔍</div>
+    <div class="ct-empty-title">No matching results</div>
+    <div class="ct-empty-description">
+      Try adjusting your filters or search terms
+    </div>
+    <button 
+      type="button" 
+      class="ct-btn ct-btn-primary"
+      (click)="clearFilters(); quickFilter.set('')">
+      Clear all filters
+    </button>
+  </div>
+
+  <div class="ct-empty-state" *ngIf="rows.length === 0">
+    <div class="ct-empty-icon">📄</div>
+    <div class="ct-empty-title">No data available</div>
+    <div class="ct-empty-description">
+      There are no rows to display in this table
+    </div>
+  </div>
+</div>

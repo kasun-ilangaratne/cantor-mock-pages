@@ -1,0 +1,38 @@
+@import '../../share-classes/risk-details-dialog/risk-details-dialog.component.scss';
+
+// Ensure the table input boxes align to the amount column grid.
+.risk-table {
+  td.amount-col .inline-input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: right;
+  }
+}
+
+// Prevent header text wrapping from changing perceived alignment.
+.risk-table th.amount-col {
+  white-space: nowrap;
+}
+
+// Style the per-row year dropdown similar to the inline input styling.
+.risk-table td.year-col .inline-select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+  background-color: white;
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  pointer-events: auto;
+  position: relative;
+  z-index: 2;
+
+  &:focus {
+    outline: none;
+    border-color: #1e40af;
+    box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+  }
+}
+

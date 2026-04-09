@@ -1,0 +1,78 @@
+.simple-dialog {
+  padding: 24px;
+}
+
+.dialog-header,
+.dialog-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dialog-header {
+  margin-bottom: 16px;
+}
+
+.dialog-header h2 {
+  margin: 0;
+}
+
+.dialog-copy,
+.summary {
+  color: #374151;
+}
+
+.summary-card {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #111827;
+}
+
+.summary {
+  padding: 12px 14px;
+  border-radius: 6px;
+  background: #eff6ff;
+}
+
+.icon-btn,
+.secondary-btn,
+.primary-btn {
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+}
+
+.dialog-actions {
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.secondary-btn,
+.primary-btn {
+  padding: 8px 14px;
+}
+
+.secondary-btn {
+  border: 1px solid #d1d5db;
+  background: #fff;
+}
+
+.primary-btn {
+  border: none;
+  background: #1e40af;
+  color: #fff;
+}

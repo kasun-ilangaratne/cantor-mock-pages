@@ -894,6 +894,24 @@
               }
             }
 
+            select.table-input {
+              min-height: 34px;
+              cursor: pointer;
+              background-color: #fff;
+            }
+
+            input.table-input-numeric {
+              text-align: right;
+              font-variant-numeric: tabular-nums;
+              -moz-appearance: textfield;
+
+              &::-webkit-outer-spin-button,
+              &::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+              }
+            }
+
             &.disabled {
               color: #9ca3af;
             }
@@ -1513,6 +1531,179 @@
             }
           }
         }
+      }
+    }
+  }
+
+  .deltaker-basic-tab {
+    .input-with-suffix {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .form-input {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .suffix {
+        font-size: 14px;
+        color: #374151;
+        white-space: nowrap;
+      }
+
+      &.tight .form-input {
+        max-width: 120px;
+      }
+    }
+
+    .deltaker-stake-section {
+      margin-top: 8px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .deltaker-stake-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px 24px;
+      max-width: 720px;
+    }
+
+    .resultatandel-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .inline-check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #333;
+      cursor: pointer;
+
+      input[type='checkbox'] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+      }
+    }
+
+    .deltaker-flags-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .deltaker-flag-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px 24px;
+
+      .inline-check.wide {
+        flex: 1 1 100%;
+      }
+    }
+  }
+
+  .deltaker-transaksjoner-tab {
+    padding-bottom: 8px;
+
+    .deltaker-tx-section {
+      margin-bottom: 0;
+    }
+
+    .deltaker-transaksjoner-scroll {
+      overflow-x: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      background-color: #fff;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .deltaker-tx-data-table {
+      min-width: 1280px;
+      margin: 0;
+
+      thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        box-shadow: 0 1px 0 #e5e7eb;
+      }
+
+      th,
+      td {
+        white-space: nowrap;
+      }
+
+      th:first-child,
+      td:first-child {
+        min-width: 152px;
+      }
+
+      td:nth-child(3) .table-input {
+        min-width: 140px;
+      }
+
+      td:nth-child(11) .table-input {
+        min-width: 120px;
+      }
+
+      tfoot tr.summary-row {
+        background-color: #f3f4f6;
+        font-weight: 600;
+        border-top: 2px solid #e5e7eb;
+
+        td {
+          padding: 12px;
+          font-size: 13px;
+          color: #333;
+        }
+
+        .summary-label {
+          text-align: right;
+          padding-right: 16px;
+        }
+
+        .summary-value {
+          text-align: right;
+          font-variant-numeric: tabular-nums;
+          white-space: nowrap;
+        }
+      }
+
+      .empty-deltaker-tx {
+        padding: 20px 16px;
+        text-align: center;
+        font-size: 14px;
+        color: #6b7280;
+        white-space: normal;
+      }
+
+      .deltaker-cell-readonly {
+        display: block;
+        min-height: 34px;
+        line-height: 34px;
+        padding: 0 4px;
+        font-size: 13px;
+        color: #333;
+      }
+
+      .deltaker-cell-num.deltaker-cell-readonly {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      td.deltaker-tx-actions {
+        min-width: 112px;
+        text-align: right;
+        white-space: nowrap;
+        vertical-align: middle;
       }
     }
   }

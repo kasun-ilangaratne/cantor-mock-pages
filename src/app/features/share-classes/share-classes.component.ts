@@ -9,6 +9,18 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { AddShareClassDialogComponent } from './add-share-class-dialog/add-share-class-dialog.component';
 import { RiskDetailsDialogComponent } from './risk-details-dialog/risk-details-dialog.component';
 import { ShareClassesSelectionDialogComponent } from './share-classes-selection-dialog/share-classes-selection-dialog.component';
+import {
+  AllocatedDividendDialogComponent,
+  AllocatedDividendEntry
+} from './allocated-dividend-dialog/allocated-dividend-dialog.component';
+import {
+  AdjustedEquityDialogComponent,
+  AdjustedEquityEntry
+} from './adjusted-equity-dialog/adjusted-equity-dialog.component';
+import {
+  AlternativeCurrencyDialogComponent,
+  AlternativeCurrencyValues
+} from './alternative-currency-dialog/alternative-currency-dialog.component';
 
 export interface ShareClass {
   id: string;
@@ -45,12 +57,70 @@ export interface RiskEntry {
   riskBeløp: number;
 }
 
+interface PassThroughEntry {
+  tidspunkt: string;
+  kommentar: string;
+  andeler?: number;
+  belop: number;
+  _editing?: boolean;
+  _isNew?: boolean;
+  _backup?: {
+    tidspunkt: string;
+    kommentar: string;
+    andeler?: number;
+    belop: number;
+  };
+  _draft?: {
+    tidspunkt: string;
+    kommentar: string;
+    andeler?: number;
+    belop: number;
+  };
+}
+
+type PassThroughTableKey = 'annual' | 'paidIn' | 'paidOut' | 'returnedTaxCapital';
+
 @Component({
   selector: 'app-share-classes',
   templateUrl: './share-classes.component.html',
   styleUrls: ['./share-classes.component.scss']
 })
 export class ShareClassesComponent implements OnInit {
+  companyType: 'standard' | 'passThrough' = 'standard';
+  passThroughIsNew = true;
+  passThroughDateFrom = '07.01.2025';
+  passThroughIsClosed = true;
+  passThroughDateTo = '17.10.2025';
+  passThroughUseNonOwnerShares = false;
+  passThroughUncalledCapital2024 = 0;
+  passThroughUncalledCapital2025 = 0;
+
+  passThroughAnnualChanges: PassThroughEntry[] = [
+    { tidspunkt: '10.07.2025 15:29', kommentar: 'Innskudd ved etablering', andeler: 12, belop: 50000 }
+  ];
+  passThroughPaidInEntries: PassThroughEntry[] = [
+    { tidspunkt: '10.07.2025 15:29', kommentar: 'Kapitalinnskudd fra deltakere', belop: 50000 }
+  ];
+  passThroughPaidOutEntries: PassThroughEntry[] = [
+    { tidspunkt: '10.07.2025 15:29', kommentar: 'Utbetaling av overskudd', belop: 50000 }
+  ];
+  passThroughReturnedTaxCapitalEntries: PassThroughEntry[] = [
+    { tidspunkt: '10.07.2025 15:29', kommentar: 'Tilbakebetaling av innbetalt kapital', belop: 50000 }
+  ];
+  allocatedDividendEntries: AllocatedDividendEntry[] = [
+    { id: 'ad-1', date: '10.07.2025', time: '15:29', amount: 50000 }
+  ];
+  adjustedEquityEntries: AdjustedEquityEntry[] = [
+    { id: 'ae-1', date: '10.07.2025', time: '15:29', amount: 50000 }
+  ];
+  alternativeCurrencyValues: AlternativeCurrencyValues = {
+    currency: 'EUR',
+    shareCapital2025: 0,
+    shareCapital2024: 0,
+    uncalled2025: 0,
+    uncalled2024: 0
+  };
+
   // Header data
   company: string = 'Shiba Group AS';
   year: number = 2025;
@@ -228,6 +298,14 @@ export class ShareClassesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const typeParam = params.get('companyType');
+      this.companyType = typeParam === 'passThrough' ? 'passThrough' : 'standard';
+      const andelerParam = params.get('useAndelerDeltakere');
+      this.passThroughUseNonOwnerShares =
+        andelerParam === '1' || andelerParam === 'true';
+    });
+
     this.updateShareClassesBasedOnDemoMode();
     this.calculateAggregateFields();
     
@@ -238,6 +316,223 @@ export class ShareClassesComponent implements OnInit {
       this.isAddMode = false;
       this.isDirty = false;
     }
+  }
+
+  get isStandardCompanyType(): boolean {
+    return this.companyType === 'standard';
+  }
+
+  get passThroughShares2024(): number {
+    return this.passThroughAnnualChanges.reduce((sum, row) => sum + Number(row.andeler || 0), 0);
+  }
+
+  get passThroughCapital2024(): number {
+    return this.passThroughAnnualChanges.reduce((sum, row) => sum + Number(row.belop || 0), 0);
+  }
+
+  get passThroughShares2025(): number {
+    return this.passThroughShares2024 * 2;
+  }
+
+  get passThroughCapital2025(): number {
+    return this.passThroughCapital2024 * 3;
+  }
+
+  addPassThroughRow(table: PassThroughTableKey): void {
+    const list = this.getPassThroughTable(table);
+    const hasAndeler = table === 'annual';
+    const newEntry: PassThroughEntry = {
+      tidspunkt: '',
+      kommentar: '',
+      andeler: hasAndeler ? 0 : undefined,
+      belop: 0,
+      _editing: true,
+      _isNew: true,
+      _draft: {
+        tidspunkt: '',
+        kommentar: '',
+        andeler: hasAndeler ? 0 : undefined,
+        belop: 0
+      }
+    };
+    list.unshift(newEntry);
+  }
+
+  startEditPassThroughRow(row: PassThroughEntry): void {
+    if (row._editing) {
+      return;
+    }
+    row._editing = true;
+    row._backup = {
+      tidspunkt: row.tidspunkt,
+      kommentar: row.kommentar,
+      andeler: row.andeler,
+      belop: row.belop
+    };
+    row._draft = {
+      tidspunkt: row.tidspunkt,
+      kommentar: row.kommentar,
+      andeler: row.andeler,
+      belop: row.belop
+    };
+  }
+
+  savePassThroughRow(row: PassThroughEntry, hasAndeler: boolean): void {
+    if (!row._draft) {
+      return;
+    }
+    row.tidspunkt = this.normalizePassThroughDateTime(row._draft.tidspunkt || '');
+    row.kommentar = row._draft.kommentar || '';
+    row.belop = Number(row._draft.belop) || 0;
+    row.andeler = hasAndeler ? Number(row._draft.andeler) || 0 : undefined;
+    row._editing = false;
+    row._isNew = false;
+    row._backup = undefined;
+    row._draft = undefined;
+  }
+
+  cancelPassThroughRow(table: PassThroughTableKey, row: PassThroughEntry): void {
+    const list = this.getPassThroughTable(table);
+    if (row._isNew) {
+      const rowIndex = list.indexOf(row);
+      if (rowIndex >= 0) {
+        list.splice(rowIndex, 1);
+      }
+      return;
+    }
+    if (row._backup) {
+      row.tidspunkt = row._backup.tidspunkt;
+      row.kommentar = row._backup.kommentar;
+      row.andeler = row._backup.andeler;
+      row.belop = row._backup.belop;
+    }
+    row._editing = false;
+    row._backup = undefined;
+    row._draft = undefined;
+  }
+
+  deletePassThroughRow(table: PassThroughTableKey, row: PassThroughEntry): void {
+    const list = this.getPassThroughTable(table);
+    const rowIndex = list.indexOf(row);
+    if (rowIndex >= 0) {
+      list.splice(rowIndex, 1);
+    }
+  }
+
+  onPassThroughDateBlur(row: PassThroughEntry): void {
+    if (!row._draft) {
+      return;
+    }
+    row._draft.tidspunkt = this.normalizePassThroughDateTime(row._draft.tidspunkt || '');
+  }
+
+  onPassThroughTopDateBlur(field: 'from' | 'to'): void {
+    if (field === 'from') {
+      this.passThroughDateFrom = this.normalizeDateOnly(this.passThroughDateFrom);
+      return;
+    }
+    this.passThroughDateTo = this.normalizeDateOnly(this.passThroughDateTo);
+  }
+
+  private getPassThroughTable(table: PassThroughTableKey): PassThroughEntry[] {
+    if (table === 'annual') {
+      return this.passThroughAnnualChanges;
+    }
+    if (table === 'paidIn') {
+      return this.passThroughPaidInEntries;
+    }
+    if (table === 'paidOut') {
+      return this.passThroughPaidOutEntries;
+    }
+    return this.passThroughReturnedTaxCapitalEntries;
+  }
+
+  private normalizePassThroughDateTime(value: string): string {
+    const trimmed = (value || '').trim();
+    if (!trimmed) {
+      return '';
+    }
+
+    const ddmmyyyyhhmm = /^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})$/;
+    if (ddmmyyyyhhmm.test(trimmed)) {
+      return trimmed;
+    }
+
+    const ddmmyyyy = /^(\d{2})\.(\d{2})\.(\d{4})$/;
+    const dmyMatch = trimmed.match(ddmmyyyy);
+    if (dmyMatch) {
+      return `${dmyMatch[1]}.${dmyMatch[2]}.${dmyMatch[3]} 00:00`;
+    }
+
+    const yyyymmddhhmm = /^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2}))?$/;
+    const ymdMatch = trimmed.match(yyyymmddhhmm);
+    if (ymdMatch) {
+      const hh = ymdMatch[4] ?? '00';
+      const mm = ymdMatch[5] ?? '00';
+      return `${ymdMatch[3]}.${ymdMatch[2]}.${ymdMatch[1]} ${hh}:${mm}`;
+    }
+
+    const parsed = new Date(trimmed);
+    if (Number.isNaN(parsed.getTime())) {
+      return trimmed;
+    }
+    const day = String(parsed.getDate()).padStart(2, '0');
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const year = parsed.getFullYear();
+    const hours = String(parsed.getHours()).padStart(2, '0');
+    const minutes = String(parsed.getMinutes()).padStart(2, '0');
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
+  }
+
+  private normalizeDateOnly(value: string): string {
+    const trimmed = (value || '').trim();
+    if (!trimmed) {
+      return '';
+    }
+    const ddmmyyyy = /^(\d{2})\.(\d{2})\.(\d{4})$/;
+    if (ddmmyyyy.test(trimmed)) {
+      return trimmed;
+    }
+    const yyyymmdd = /^(\d{4})-(\d{2})-(\d{2})$/;
+    const ymdMatch = trimmed.match(yyyymmdd);
+    if (ymdMatch) {
+      return `${ymdMatch[3]}.${ymdMatch[2]}.${ymdMatch[1]}`;
+    }
+    const parsed = new Date(trimmed);
+    if (Number.isNaN(parsed.getTime())) {
+      return trimmed;
+    }
+    const day = String(parsed.getDate()).padStart(2, '0');
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const year = parsed.getFullYear();
+    return `${day}.${month}.${year}`;
+  }
+
+  onCompanyTypeChange(): void {
+    // Keep the selection in URL so sibling routes/tabs can render correct labels.
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        companyType: this.companyType,
+        useAndelerDeltakere:
+          this.companyType === 'passThrough' && this.passThroughUseNonOwnerShares
+            ? '1'
+            : null
+      },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  onPassThroughUseNonOwnerSharesChange(checked: boolean): void {
+    this.passThroughUseNonOwnerShares = checked;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        useAndelerDeltakere:
+          this.companyType === 'passThrough' && checked ? '1' : null
+      },
+      queryParamsHandling: 'merge'
+    });
   }
 
   // Update share classes based on demo mode
@@ -586,6 +881,51 @@ export class ShareClassesComponent implements OnInit {
     console.log('Open dividend details dialog');
   }
 
+  openAllocatedDividendDialog(): void {
+    const dialogRef = this.dialog.open(AllocatedDividendDialogComponent, {
+      width: '760px',
+      maxWidth: '95vw',
+      data: { entries: this.allocatedDividendEntries.map((entry) => ({ ...entry })) }
+    });
+
+    dialogRef.afterClosed().subscribe((result: any) => {
+      if (result?.saved) {
+        this.allocatedDividendEntries = (result.entries ?? []).map((entry: AllocatedDividendEntry) => ({ ...entry }));
+      }
+    });
+  }
+
+  openAdjustedEquityDialog(): void {
+    const dialogRef = this.dialog.open(AdjustedEquityDialogComponent, {
+      width: '760px',
+      maxWidth: '95vw',
+      data: { entries: this.adjustedEquityEntries.map((entry) => ({ ...entry })) }
+    });
+
+    dialogRef.afterClosed().subscribe((result: any) => {
+      if (result?.saved) {
+        this.adjustedEquityEntries = (result.entries ?? []).map((entry: AdjustedEquityEntry) => ({ ...entry }));
+      }
+    });
+  }
+
+  openAlternativeCurrencyDialog(): void {
+    const dialogRef = this.dialog.open(AlternativeCurrencyDialogComponent, {
+      width: '560px',
+      maxWidth: '95vw',
+      data: { values: { ...this.alternativeCurrencyValues } }
+    });
+
+    dialogRef.afterClosed().subscribe((result: any) => {
+      if (result?.saved) {
+        this.alternativeCurrencyValues = {
+          ...this.alternativeCurrencyValues,
+          ...(result.values ?? {})
+        };
+      }
+    });
+  }
+
   get aggregateRiskPerShare(): number {
     return (this.aggregateFields as any)['riskBeløpPerAksje'];
   }
@@ -600,11 +940,39 @@ export class ShareClassesComponent implements OnInit {
   }
 
   navigateToShareClasses(): void {
-    this.router.navigate([''], { relativeTo: this.route });
+    // Avoid re-navigating to the same URL which can leave this complex component
+    // in a partially re-rendered state.
+    if (this.isShareClassesRoute()) {
+      return;
+    }
+    this.router.navigate([''], {
+      relativeTo: this.route,
+      queryParams: {
+        companyType: this.companyType,
+        useAndelerDeltakere:
+          this.companyType === 'passThrough' && this.passThroughUseNonOwnerShares
+            ? '1'
+            : null
+      },
+      queryParamsHandling: 'merge'
+    });
   }
 
   navigateToShareholders(): void {
-    this.router.navigate(['shareholders'], { relativeTo: this.route });
+    if (this.isShareholdersRoute()) {
+      return;
+    }
+    this.router.navigate(['shareholders'], {
+      relativeTo: this.route,
+      queryParams: {
+        companyType: this.companyType,
+        useAndelerDeltakere:
+          this.companyType === 'passThrough' && this.passThroughUseNonOwnerShares
+            ? '1'
+            : null
+      },
+      queryParamsHandling: 'merge'
+    });
   }
 
   // Company Transactions Methods

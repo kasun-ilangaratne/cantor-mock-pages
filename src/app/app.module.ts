@@ -13,8 +13,10 @@ const routes: Routes = [
   { path: 'consolidated-result-unit', loadChildren: () => import('./features/consolidated-result-unit/consolidated-result-unit.module').then(m => m.ConsolidatedResultUnitModule) },
   { path: 'tree-builder', loadChildren: () => import('./features/tree-builder/tree-builder.module').then(m => m.TreeBuilderModule) },
   { path: 'mock-equity-reconciliation', loadChildren: () => import('./features/mock-equity-reconciliation/equity-reconciliation.module').then(m => m.EquityReconciliationModule) },
-  { path: 'mock-share-classes', loadChildren: () => import('./features/share-classes/share-classes.module').then(m => m.ShareClassesModule) },  
-  { path: 'mock-share-classes/:id', loadChildren: () => import('./features/share-classes/share-classes.module').then(m => m.ShareClassesModule) },  
+  // { path: 'mock-share-classes', loadChildren: () => import('./features/share-classes/share-classes.module').then(m => m.ShareClassesModule) },  
+  // { path: 'mock-share-classes/:id', loadChildren: () => import('./features/share-classes/share-classes.module').then(m => m.ShareClassesModule) },  
+  {path: 'share-classes', loadChildren: () => import('./features/share-classes/share-classes.module').then(m => m.ShareClassesModule) },
+  { path: 'shares', loadChildren: () => import('./features/shares/shares.module').then(m => m.SharesModule) },
   { path: '', redirectTo: '/consolidated-result-unit', pathMatch: 'full' }
 ];
 

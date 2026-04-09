@@ -1,0 +1,42 @@
+<div class="share-import-dialog-container">
+  <h2 mat-dialog-title class="dialog-title">Import av aksjeposter</h2>
+
+  <mat-dialog-content class="dialog-content">
+    <div class="info-panel">
+      <p class="dialog-copy">
+        Here you can import share records. The spreadsheet must contain the following columns:
+      </p>
+
+      <p class="column-list">
+        Company, Group, Number, Asset value, Municipality, Accounting value, Acquisition cost, Acquisition date, Ownership interest, Equity year end, Result year end.
+      </p>
+
+      <a class="sample-link" [href]="sampleFileUrl" (click)="$event.preventDefault()">
+        You can download a sample file here...
+      </a>
+    </div>
+
+    <label class="upload-field">
+      <span>Select Excel file</span>
+      <input type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)">
+    </label>
+
+    <div class="selected-file" *ngIf="selectedFileName">
+      Selected file: <strong>{{ selectedFileName }}</strong>
+    </div>
+
+    <div class="summary" *ngIf="importSummary">{{ importSummary }}</div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <label class="delete-checkbox">
+      <input type="checkbox" [(ngModel)]="deleteExistingPosts">
+      <span>Slett eksisterende aksjeposter - Delete exisiting posts.</span>
+    </label>
+
+    <div class="button-row">
+      <button type="button" class="btn-save" (click)="import()">Import</button>
+      <button type="button" class="btn-cancel" (click)="close()">Avbryt</button>
+    </div>
+  </mat-dialog-actions>
+</div>

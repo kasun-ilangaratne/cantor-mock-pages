@@ -1,0 +1,38 @@
+<div class="initial-value-dialog-container">
+  <h2 mat-dialog-title class="dialog-title">Inngangsverdi pr 01.01.1992</h2>
+
+  <mat-dialog-content class="dialog-content">
+    <div class="initial-value-form">
+      <div class="field-group">
+        <label>Taxable asset value</label>
+        <input type="number" class="field-input" min="0" [(ngModel)]="taxableAssetValue" />
+      </div>
+
+      <div class="field-group">
+        <label>Appraised value</label>
+        <input type="number" class="field-input" min="0" [(ngModel)]="appraisedValue" />
+      </div>
+
+      <div class="field-group">
+        <label>Accounting value</label>
+        <input type="number" class="field-input" min="0" [(ngModel)]="accountingValue" />
+      </div>
+
+      <div class="field-group">
+        <label>Listed company&apos;s stated initial value</label>
+        <input
+          type="number"
+          class="field-input"
+          min="0"
+          [(ngModel)]="listedCompanyStatedInitialValue"
+        />
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-cancel" (click)="onCancel()">Avbryt</button>
+    <button type="button" class="btn-save" (click)="onSave()">Lagre</button>
+  </mat-dialog-actions>
+</div>
+

@@ -1,0 +1,70 @@
+<div class="risk-details-dialog-container">
+  <h2 mat-dialog-title class="dialog-title">RISK-beløp</h2>
+
+  <mat-dialog-content class="dialog-content">
+    <div class="add-entry-section">
+      <div class="add-entry-fields">
+        <button type="button" class="add-btn" (click)="addRiskEntry()">
+          <mat-icon>add</mat-icon>
+          Legg til
+        </button>
+      </div>
+    </div>
+
+    <div class="risk-table-section">
+      <table class="risk-table">
+        <thead>
+          <tr>
+            <th class="year-col">År</th>
+            <th class="amount-col">RISK per aksje</th>
+            <th class="action-col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let entry of riskEntries; trackBy: trackById">
+            <td class="year-col">
+              <select
+                class="inline-select"
+                [(ngModel)]="entry['år']"
+                (ngModelChange)="onYearChange(entry, $event)">
+                <option *ngFor="let y of years" [ngValue]="y">{{ y }}</option>
+              </select>
+            </td>
+            <td class="amount-col">
+              <input
+                type="number"
+                [value]="entry['riskBeløp']"
+                (blur)="updateRiskEntry(entry, $any($event.target).valueAsNumber)"
+                class="inline-input">
+            </td>
+            <td class="action-col">
+              <button
+                type="button"
+                class="delete-btn"
+                (click)="deleteRiskEntry(entry)"
+                aria-label="Delete">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </tr>
+
+          <tr class="total-row" *ngIf="riskEntries.length > 0">
+            <td class="year-col"><strong>Sum</strong></td>
+            <td class="amount-col"><strong>{{ formatNumber(totalRisk) }}</strong></td>
+            <td class="action-col"></td>
+          </tr>
+
+          <tr *ngIf="riskEntries.length === 0" class="empty-row">
+            <td colspan="3" class="empty-message">Ingen RISK-poster registrert</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-cancel" (click)="onCancel()">Avbryt</button>
+    <button type="button" class="btn-save" (click)="onSave()">Lagre</button>
+  </mat-dialog-actions>
+</div>
+

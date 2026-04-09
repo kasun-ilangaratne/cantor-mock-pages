@@ -1,0 +1,34 @@
+<div class="share-groups-dialog-container">
+  <h2 mat-dialog-title class="dialog-title">Grupper</h2>
+
+  <mat-dialog-content class="dialog-content">
+    <div class="toolbar">
+      <button type="button" class="add-btn" (click)="addGroup()">
+        <mat-icon>add_circle_outline</mat-icon>
+        Legg til
+      </button>
+    </div>
+
+    <div class="groups-table">
+      <div class="table-header">
+        <div>Grupper</div>
+      </div>
+
+      <div class="table-row" *ngFor="let group of editableGroups; let i = index">
+        <input
+          type="text"
+          class="group-input"
+          [(ngModel)]="group.name"
+          placeholder="Gruppenavn">
+        <button type="button" class="delete-btn" (click)="deleteGroup(i)" title="Slett gruppe">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-save" (click)="save()">Lagre</button>
+    <button type="button" class="btn-cancel" (click)="close()">Avbryt</button>
+  </mat-dialog-actions>
+</div>

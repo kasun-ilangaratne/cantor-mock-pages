@@ -1,0 +1,24 @@
+<div class="simple-dialog">
+  <div class="dialog-header">
+    <h2>Update asset value</h2>
+    <button type="button" class="icon-btn" (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <p class="dialog-copy">
+    Use data from other companies in Cantor to update share-related asset values for year {{ data.year }}.
+  </p>
+
+  <div class="summary-card">
+    <div>Shareholdings in year: <strong>{{ data.shareholdings.length }}</strong></div>
+    <div>Active at year-end: <strong>{{ activeCount }}</strong></div>
+  </div>
+
+  <div class="summary" *ngIf="summary">{{ summary }}</div>
+
+  <div class="dialog-actions">
+    <button type="button" class="secondary-btn" (click)="close()">Done</button>
+    <button type="button" class="primary-btn" (click)="updateValues()">Update now</button>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+@import '../../share-classes/risk-details-dialog/risk-details-dialog.component.scss';
+
+.initial-value-dialog-container {
+  display: flex;
+  flex-direction: column;
+  min-width: 520px;
+  max-width: 650px;
+  font-family: inherit;
+}
+
+.initial-value-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+}
+
+.field-input {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+
+  &:focus {
+    outline: none;
+    border-color: #1e40af;
+    box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+  }
+}
+

@@ -1,0 +1,158 @@
+.share-import-dialog-container {
+  display: flex;
+  flex-direction: column;
+  min-width: 560px;
+  max-width: 680px;
+  font-family: inherit;
+}
+
+.dialog-title {
+  margin: 0;
+  padding: 20px 20px 16px 20px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dialog-content {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(90vh - 150px);
+  margin: 0 !important;
+}
+
+.info-panel {
+  padding: 16px;
+  border: 1px solid #d1d5db;
+  background-color: #fff;
+}
+
+.dialog-copy,
+.column-list,
+.selected-file,
+.summary {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.column-list {
+  margin-top: 14px;
+}
+
+.sample-link {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 14px;
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.upload-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 20px;
+
+  span {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+  }
+
+  input {
+    font-size: 14px;
+  }
+}
+
+.selected-file {
+  margin-top: 12px;
+}
+
+.summary {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid #dbeafe;
+  border-radius: 6px;
+  background-color: #eff6ff;
+}
+
+::ng-deep .dialog-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px 20px 20px;
+  border-top: 1px solid #e5e7eb;
+  margin: 0 !important;
+
+  .delete-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #333;
+  }
+
+  .button-row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn-cancel,
+  .btn-save {
+    min-width: 100px;
+    height: 40px;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: 2px solid #1e40af;
+      outline-offset: 2px;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+
+  .btn-cancel {
+    background-color: #6b7280;
+    color: white;
+
+    &:hover {
+      background-color: #4b5563;
+    }
+  }
+
+  .btn-save {
+    background-color: #4b5563;
+    color: white;
+
+    &:hover {
+      background-color: #374151;
+    }
+  }
+}
+
+@media (max-width: 720px) {
+  .share-import-dialog-container {
+    min-width: auto;
+  }
+
+  ::ng-deep .dialog-actions {
+    flex-direction: column;
+    align-items: stretch;
+
+    .button-row {
+      justify-content: flex-end;
+    }
+  }
+}

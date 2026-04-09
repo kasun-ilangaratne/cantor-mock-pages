@@ -1,0 +1,186 @@
+<div class="share-form-page">
+  <div class="page-header">
+    <button type="button" class="back-btn" (click)="onCancel()">
+      <mat-icon>arrow_back</mat-icon>
+      Tilbake
+    </button>
+
+    <div class="header-content">
+      <h1>{{ pageTitle }}</h1>
+      <div class="share-selector">
+        <select
+          class="share-selector-dropdown"
+          [(ngModel)]="selectedShareholdingId"
+          (ngModelChange)="onSelectedShareholdingChange()">
+          <option [ngValue]="null">{{ isEdit ? 'Select post' : 'New post' }}</option>
+          <option *ngFor="let shareholding of shareholdings" [ngValue]="shareholding.id">
+            {{ shareholding.company }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Company</label>
+        <input type="text" [(ngModel)]="form.company" placeholder="Company">
+      </div>
+
+      <div class="form-group">
+        <label>Organisation number</label>
+        <input type="text" [(ngModel)]="form.organizationNumber" placeholder="Org.nr">
+      </div>
+
+      <div class="form-group">
+        <label>Group</label>
+        <select [(ngModel)]="form.groupId">
+          <option [ngValue]="null">No group</option>
+          <option *ngFor="let group of groups" [ngValue]="group.id">{{ group.name }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Type</label>
+        <select [(ngModel)]="form.type">
+          <option *ngFor="let type of typeOptions" [value]="type">{{ type }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Company in Cantor</label>
+        <select [(ngModel)]="form.companyInCantor" (ngModelChange)="onCompanyInCantorChange()">
+          <option [ngValue]="null">Select company</option>
+          <option *ngFor="let company of companyOptions" [ngValue]="company">{{ company }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Office municipality</label>
+        <select [(ngModel)]="form.officeMunicipality">
+          <option *ngFor="let municipality of municipalityOptions" [value]="municipality">{{ municipality }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Currency</label>
+        <select [(ngModel)]="form.currency">
+          <option *ngFor="let currency of currencyOptions" [value]="currency">{{ currency }}</option>
+        </select>
+      </div>
+
+      <label class="checkbox-row inline-checkbox">
+        <input type="checkbox" [(ngModel)]="form.norwegianCompany">
+        <span>Norwegian company</span>
+      </label>
+    </div>
+
+    <div class="share-value-section">
+      <div class="section-header">
+        <button type="button" class="add-row-btn" (click)="addShareValueRow()">
+          <mat-icon>add_circle_outline</mat-icon>
+          Legg til
+        </button>
+        <h2>Share value</h2>
+      </div>
+
+      <table class="share-value-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Text</th>
+            <th>Number of shares</th>
+            <th>Price</th>
+            <th>Costs</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let entry of form.shareValueEntries; let i = index">
+            <td><input type="date" [(ngModel)]="entry.date"></td>
+            <td>
+              <select [(ngModel)]="entry.text">
+                <option value="Buy">Buy</option>
+                <option value="Sell">Sell</option>
+              </select>
+            </td>
+            <td><input type="number" [(ngModel)]="entry.shares"></td>
+            <td><input type="number" [(ngModel)]="entry.price" min="0"></td>
+            <td><input type="number" [(ngModel)]="entry.costs" min="0"></td>
+            <td class="calculated-cell">{{ getEntryAmount(entry) | number:'1.2-2' }}</td>
+            <td class="actions-cell">
+              <button type="button" class="delete-row-btn" (click)="removeShareValueRow(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2"></td>
+            <td>{{ totalShares | number:'1.2-2' }}</td>
+            <td colspan="2"></td>
+            <td>{{ totalAmount | number:'1.2-2' }}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="form-grid bottom-grid">
+      <div class="form-group">
+        <label>Par value of the share</label>
+        <input type="number" [(ngModel)]="form.parValue" min="0">
+      </div>
+
+      <div class="form-group">
+        <label>Share capital of the company</label>
+        <input type="number" [(ngModel)]="form.shareCapital" min="0">
+      </div>
+
+      <div class="form-group">
+        <label>Equity last year</label>
+        <input type="number" [(ngModel)]="form.equityLastYear">
+      </div>
+
+      <div class="form-group">
+        <label>Profit last year</label>
+        <input type="number" [(ngModel)]="form.profitLastYear">
+      </div>
+
+      <div class="form-group">
+        <label>Total dividend received</label>
+        <input type="number" [(ngModel)]="form.totalDividendReceived" min="0">
+      </div>
+
+      <div class="form-group">
+        <label>Withholding tax deducted</label>
+        <input type="number" [(ngModel)]="form.withholdingTaxDeducted" min="0">
+      </div>
+
+      <div class="form-group">
+        <label>Assessed total accounting value</label>
+        <input type="number" [(ngModel)]="form.assessedTotalAccountingValue">
+      </div>
+
+      <label class="checkbox-row inline-checkbox align-end">
+        <input type="checkbox" [(ngModel)]="form.transferToTaxReturn">
+        <span>Transfer to tax return</span>
+      </label>
+    </div>
+
+    <label class="checkbox-row status-checkbox">
+      <input type="checkbox" [(ngModel)]="form.activeAtYearEnd">
+      <span>Active at year-end</span>
+    </label>
+  </div>
+
+  <div class="page-actions">
+    <button type="button" class="secondary-action-btn" (click)="openRiskDetailsDialog()">RISK-beløp</button>
+    <button type="button" class="secondary-action-btn" (click)="openInitialValueDialog()">Inngangsverdi pr 01.01.1992</button>
+    <button type="button" class="save-btn" (click)="onSave()">Lagre</button>
+    <button type="button" class="cancel-btn" (click)="onCancel()">Avbryt</button>
+  </div>
+</div>
