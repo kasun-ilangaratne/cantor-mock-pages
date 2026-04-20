@@ -1,0 +1,330 @@
+<div class="annual-report-shell">
+  <header class="shell-header">
+    <div class="header-left">
+      <h1>Annual Report Workspace</h1>
+      <div class="context-pill">Status: {{ reportStatus }}</div>
+      <div class="context-pill subtle">{{ lastSavedLabel }}</div>
+    </div>
+    <div class="header-controls">
+      <label>
+        Company
+        <select [(ngModel)]="selectedCompany">
+          <option *ngFor="let company of companyOptions" [value]="company">{{ company }}</option>
+        </select>
+      </label>
+      <label>
+        Year
+        <select [(ngModel)]="selectedYear">
+          <option *ngFor="let year of yearOptions" [value]="year">{{ year }}</option>
+        </select>
+      </label>
+      <button class="secondary" (click)="runValidation()">Validate</button>
+      <button class="secondary" (click)="exportReport()">Export</button>
+      <button class="primary" [disabled]="!canPublish" (click)="publish()">Publish</button>
+    </div>
+  </header>
+
+  <div class="shell-body">
+    <aside class="topics-nav">
+      <div class="nav-title">Topics</div>
+      <button
+        *ngFor="let topic of topics"
+        class="topic-item"
+        [class.active]="selectedTopicId === topic.id"
+        (click)="selectTopic(topic.id)">
+        <span>{{ topic.label }}</span>
+        <small>{{ topic.completion }}%</small>
+      </button>
+    </aside>
+
+    <main class="topic-workspace">
+      <div class="flash" *ngIf="flashMessage">{{ flashMessage }}</div>
+
+      <section *ngIf="selectedTopicId === 'overview'" class="topic-panel">
+        <h2>Overview</h2>
+        <div class="overview-stat-grid">
+          <article class="overview-stat-card completion-card">
+            <h3>Completion</h3>
+            <div class="progress-track">
+              <div class="progress-fill" [style.width.%]="completionAvg"></div>
+            </div>
+            <div class="progress-meta">
+              <span>{{ completionAvg }}%</span>
+              <small>Last draft</small>
+            </div>
+          </article>
+
+          <article class="overview-stat-card">
+            <h3>Assets</h3>
+            <div class="metric">{{ formatCurrency(assetTotals.closing) }}</div>
+          </article>
+
+          <article class="overview-stat-card">
+            <h3>Rev object</h3>
+            <div class="metric">{{ formatCurrency(receivablesResult.taxableValue) }}</div>
+          </article>
+
+          <article class="overview-stat-card issues-card">
+            <h3>Issues</h3>
+            <div class="issue-row">
+              <span class="issue-dot"></span>
+              <strong>{{ validationMessages.length }}</strong>
+              <span>{{ issueLabel }}</span>
+            </div>
+          </article>
+        </div>
+
+        <article class="overview-block">
+          <div class="block-header">
+            <h3>Recent updates</h3>
+          </div>
+          <ul class="update-list">
+            <li *ngFor="let update of recentOverviewUpdates">
+              <span class="update-title">{{ update.title }}</span>
+              <small>{{ update.when }}</small>
+            </li>
+          </ul>
+        </article>
+
+        <article class="overview-block">
+          <div class="block-header">
+            <h3>Annual Report Summary</h3>
+          </div>
+          <table class="overview-summary-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Tax 1%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of overviewSummaryRows">
+                <td>{{ row.label }}</td>
+                <td class="num">{{ formatCurrency(row.amount) }}</td>
+                <td class="num">{{ formatCurrency(row.tax) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="overview-block">
+          <div class="block-header">
+            <h3>Affected Sections</h3>
+          </div>
+          <div class="section-links">
+            <button class="section-link" (click)="selectTopic('assets')">Balance Sheet</button>
+            <button class="section-link" (click)="selectTopic('validation')">Note 3</button>
+          </div>
+        </article>
+
+        <article class="overview-block quick-links">
+          <div class="block-header">
+            <h3>Quick actions</h3>
+          </div>
+          <div class="topic-links">
+            <button class="link" (click)="selectTopic('assets')">Open Assets</button>
+            <button class="link" (click)="selectTopic('receivables-tax-value')">Open Receivables</button>
+            <button class="link" (click)="selectTopic('validation')">Open Validation</button>
+          </div>
+        </article>
+      </section>
+
+      <section *ngIf="selectedTopicId === 'assets'" class="topic-panel">
+        <h2>Assets</h2>
+        <p class="topic-description">
+          Table-based topic. Row details open in the right-side drawer.
+        </p>
+
+        <div class="assets-tools">
+          <input type="text" [(ngModel)]="searchTerm" placeholder="Search object, description, group" />
+          <label class="checkbox">
+            <input type="checkbox" [(ngModel)]="showActiveOnly" />
+            Show active only
+          </label>
+        </div>
+
+        <table class="assets-table">
+          <thead>
+            <tr>
+              <th>Object ID</th>
+              <th>Description</th>
+              <th>Opening Value</th>
+              <th>New Acquisition</th>
+              <th>Depreciation</th>
+              <th>Closing Value</th>
+              <th>Physical Asset</th>
+              <th>Exclude</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let asset of filteredAssets" (click)="openAssetDrawer(asset)">
+              <td>{{ asset.objectId }}</td>
+              <td>{{ asset.description }}</td>
+              <td class="num">{{ formatCurrency(asset.openingValue) }}</td>
+              <td class="num">{{ formatCurrency(asset.newAcquisition) }}</td>
+              <td class="num">{{ formatCurrency(asset.depreciation) }}</td>
+              <td class="num">{{ formatCurrency(asset.closingValue) }}</td>
+              <td>{{ asset.physicalAsset ? 'Yes' : 'No' }}</td>
+              <td>{{ asset.exclude ? 'Yes' : 'No' }}</td>
+              <td>
+                <button class="icon-btn" (click)="openAssetDrawer(asset); $event.stopPropagation()">Edit</button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2">Totals</td>
+              <td class="num">{{ formatCurrency(assetTotals.opening) }}</td>
+              <td class="num">{{ formatCurrency(assetTotals.acquisition) }}</td>
+              <td class="num">{{ formatCurrency(assetTotals.depreciation) }}</td>
+              <td class="num">{{ formatCurrency(assetTotals.closing) }}</td>
+              <td colspan="3"></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="impact-box">
+          <h3>Impact on annual report</h3>
+          <ul>
+            <li>Balance Sheet -> Fixed assets</li>
+            <li>Tax note -> Depreciation basis and thresholds</li>
+            <li>Validation -> Asset exclusion consistency checks</li>
+          </ul>
+        </div>
+      </section>
+
+      <section *ngIf="selectedTopicId === 'receivables-tax-value'" class="topic-panel">
+        <h2>Receivables Tax Value</h2>
+        <p class="topic-description">Calculation-heavy topic. Always opened in center workspace.</p>
+
+        <div class="calc-grid">
+          <article>
+            <h3>Inputs</h3>
+            <label>Gross receivables <input type="number" [(ngModel)]="receivablesInput.grossReceivables" /></label>
+            <label>Expected credit loss <input type="number" [(ngModel)]="receivablesInput.expectedCreditLoss" /></label>
+            <label>Disputed amount <input type="number" [(ngModel)]="receivablesInput.disputedAmount" /></label>
+            <label>Tax adjustment <input type="number" [(ngModel)]="receivablesInput.taxAdjustment" /></label>
+            <label>Tax rate (%) <input type="number" [(ngModel)]="receivablesInput.taxRatePercent" /></label>
+          </article>
+
+          <article>
+            <h3>Formula / calculation</h3>
+            <p>
+              Taxable base = Gross receivables - Expected credit loss - Disputed amount + Tax adjustment
+            </p>
+            <p>Taxable value = max(0, Taxable base)</p>
+            <p>Effective tax impact = Taxable value * Tax rate</p>
+            <button class="primary" (click)="recalculateReceivables()">Recalculate</button>
+          </article>
+
+          <article>
+            <h3>Result summary</h3>
+            <div class="result-row">
+              <span>Taxable base</span>
+              <strong>{{ formatCurrency(receivablesResult.taxableBase) }}</strong>
+            </div>
+            <div class="result-row">
+              <span>Taxable value</span>
+              <strong>{{ formatCurrency(receivablesResult.taxableValue) }}</strong>
+            </div>
+            <div class="result-row">
+              <span>Effective tax impact</span>
+              <strong>{{ formatCurrency(receivablesResult.effectiveTaxImpact) }}</strong>
+            </div>
+          </article>
+
+          <article>
+            <h3>Validation / help</h3>
+            <ul>
+              <li>Editable values are shown as input fields.</li>
+              <li>Calculated values update only on recalculate.</li>
+              <li>Use Validate to refresh report-level checks.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section *ngIf="selectedTopicId === 'validation'" class="topic-panel">
+        <h2>Validation</h2>
+        <p class="topic-description">Run validation and review blocking issues for publish.</p>
+        <button class="primary" (click)="runValidation()">Run Validation</button>
+        <div class="validation-list">
+          <div *ngFor="let item of validationMessages" class="validation-item" [class]="item.severity">
+            {{ item.text }}
+          </div>
+        </div>
+        <p *ngIf="publishBlockedReason" class="blocked-reason">Publish status: {{ publishBlockedReason }}</p>
+      </section>
+
+      <section
+        *ngIf="
+          selectedTopicId === 'income' ||
+          selectedTopicId === 'inventory' ||
+          selectedTopicId === 'equity-reconciliation'
+        "
+        class="topic-panel">
+        <h2>{{ selectedTopic.label }}</h2>
+        <p class="topic-description">{{ selectedTopic.description }}</p>
+        <p class="placeholder">POC placeholder workspace. Use Overview, Assets and Receivables Tax Value to test full interaction model.</p>
+      </section>
+    </main>
+
+    <aside class="detail-drawer" [class.open]="drawerOpen">
+      <div class="drawer-header">
+        <div>
+          <h3>{{ editingAsset?.description || 'Object detail' }}</h3>
+          <small>{{ editingAsset?.objectId }}</small>
+        </div>
+        <button (click)="closeDrawer()">Close</button>
+      </div>
+
+      <div class="drawer-tabs">
+        <button [class.active]="drawerTab === 'general'" (click)="drawerTab = 'general'">General</button>
+        <button [class.active]="drawerTab === 'values'" (click)="drawerTab = 'values'">Values</button>
+        <button [class.active]="drawerTab === 'tax'" (click)="drawerTab = 'tax'">Tax</button>
+        <button [class.active]="drawerTab === 'history'" (click)="drawerTab = 'history'">History</button>
+      </div>
+
+      <div class="drawer-content" *ngIf="editingAsset as asset">
+        <div *ngIf="drawerTab === 'general'" class="field-grid">
+          <label>Object Identifier <input [(ngModel)]="asset.objectId" /></label>
+          <label>Description <input [(ngModel)]="asset.description" /></label>
+          <label>Acquisition Date <input [(ngModel)]="asset.acquisitionDate" /></label>
+          <label>Balance Group <input [(ngModel)]="asset.balanceGroup" /></label>
+        </div>
+
+        <div *ngIf="drawerTab === 'values'" class="field-grid">
+          <label>Opening Value <input type="number" [(ngModel)]="asset.openingValue" /></label>
+          <label>Written Down Value of Replaced Assets <input type="number" [(ngModel)]="asset.writtenDownReplacedAssets" /></label>
+          <label>New Acquisition <input type="number" [(ngModel)]="asset.newAcquisition" /></label>
+          <label>Cost <input type="number" [(ngModel)]="asset.cost" /></label>
+          <label>Depreciation Basis <input type="number" [(ngModel)]="asset.depreciationBasis" /></label>
+          <label>Annual Depreciation <input type="number" [(ngModel)]="asset.annualDepreciation" /></label>
+          <label>Depreciation <input type="number" [(ngModel)]="asset.depreciation" /></label>
+          <label>Closing Value <input type="number" [(ngModel)]="asset.closingValue" readonly /></label>
+        </div>
+
+        <div *ngIf="drawerTab === 'tax'" class="field-grid">
+          <label class="check"><input type="checkbox" [(ngModel)]="asset.exclude" /> Exclude</label>
+          <label class="check"><input type="checkbox" [(ngModel)]="asset.physicalAsset" /> Physical Asset in Closing Value</label>
+          <label class="check"><input type="checkbox" [(ngModel)]="asset.taxFlags.allowSpecialTaxWriteOff" /> Allow special tax write-off</label>
+          <label>Historic cost price <input type="number" [(ngModel)]="asset.historicCostPrice" /></label>
+          <label>Lower depreciation threshold <input type="number" [(ngModel)]="asset.lowerDepreciationThreshold" /></label>
+        </div>
+
+        <div *ngIf="drawerTab === 'history'" class="history">
+          <div *ngFor="let item of asset.history">{{ item }}</div>
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <button class="secondary" (click)="closeDrawer()">Cancel</button>
+        <button class="primary" (click)="saveAssetChanges()">Save changes</button>
+        <button class="secondary" (click)="saveAssetChanges(true)">Save and next</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
