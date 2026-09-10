@@ -65,6 +65,7 @@ const routes: Routes = [
         (m) => m.SDDeltagerDetaljerComponent,
       ),
   },
+  { path: 'andre-variabler', loadChildren: () => import('./features/andre-variabler/andre-variabler.module').then(m => m.AndreVariablerModule) },
   { path: "", redirectTo: "/consolidated-result-unit", pathMatch: "full" },
 ];
 

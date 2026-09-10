@@ -1,4 +1,15 @@
 /* You can add global styles to this file, and also import other style files */
+
+.variable-detail-dialog-panel .mat-mdc-dialog-container,
+.variable-detail-dialog-panel .mat-dialog-container {
+  padding: 0;
+  overflow: hidden;
+}
+
+.variable-detail-dialog-panel .mat-mdc-dialog-content,
+.variable-detail-dialog-panel .mat-dialog-content {
+  max-height: 70vh;
+}
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 
 /* Snackbar styles */

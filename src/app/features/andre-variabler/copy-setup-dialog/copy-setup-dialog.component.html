@@ -1,0 +1,40 @@
+<div class="copy-dialog">
+  <h2 mat-dialog-title class="dialog-title">Kopier rapportoppsett</h2>
+
+  <mat-dialog-content class="dialog-content">
+    <div class="copy-grid">
+      <div>
+        <div class="section-label">Kopier variabler:</div>
+        <label><input type="checkbox" [(ngModel)]="variables.generelle"> Generelle</label>
+        <label><input type="checkbox" [(ngModel)]="variables.kontantstrom"> Kontantstrøm inkl. pant mv</label>
+        <label><input type="checkbox" [(ngModel)]="variables.regnskapsanalyse"> Regnskapsanalyse</label>
+        <label><input type="checkbox" [(ngModel)]="variables.grafvariabler"> Grafvariabler</label>
+        <label><input type="checkbox" [(ngModel)]="variables.notevariabler"> Notevariabler</label>
+      </div>
+
+      <div class="mode-box">
+        <label><input type="radio" name="copyMode" value="add" [(ngModel)]="copyMode"> Legg til nye</label>
+        <label><input type="radio" name="copyMode" value="replace" [(ngModel)]="copyMode"> Erstatt alle</label>
+      </div>
+    </div>
+
+    <p class="instruction">Velg hvilke firma det skal kopieres til her:</p>
+    <div class="company-list">
+      <label *ngFor="let company of companyOptions">
+        <input
+          type="checkbox"
+          [checked]="isSelected(company)"
+          (change)="toggleCompany(company, $any($event.target).checked)">
+        {{ company }}
+      </label>
+    </div>
+    <div class="company-action">
+      <button type="button" class="btn-save" (click)="selectAllCompanies()">Til flere firma</button>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-save" (click)="onApply()">Bruk</button>
+    <button type="button" class="btn-cancel" (click)="onCancel()">Avbryt</button>
+  </mat-dialog-actions>
+</div>

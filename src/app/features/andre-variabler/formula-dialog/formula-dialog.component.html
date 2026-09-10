@@ -1,0 +1,67 @@
+<div class="formula-dialog">
+  <h2 mat-dialog-title class="dialog-title">Rediger detaljer</h2>
+
+  <mat-dialog-content class="dialog-content">
+    <label class="section-label">Formel</label>
+    <textarea class="formula-input" [(ngModel)]="formula" placeholder="SALDOV(3000:8399)*-1"></textarea>
+
+    <div class="function-dropdowns">
+      <div class="dropdown-group">
+        <label>Velg en funksjon:</label>
+        <select [(ngModel)]="selectedFunction1" (change)="insertFunction(selectedFunction1)">
+          <option *ngFor="let func of functions" [value]="func">{{ func }}</option>
+        </select>
+      </div>
+      <div class="dropdown-group">
+        <label>Næringsspesifikasjon</label>
+        <select [(ngModel)]="selectedFunction2">
+          <option *ngFor="let func of functions" [value]="func">{{ func }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="dimension-row">
+      <label class="check">
+        <input type="checkbox" [(ngModel)]="calculateDimension">
+        Kalkuler dimensjon
+      </label>
+      <select [(ngModel)]="dimension" [disabled]="!calculateDimension">
+        <option>Dimension dim0</option>
+        <option>Dimension dim1</option>
+        <option>Dimension dim2</option>
+      </select>
+      <select [(ngModel)]="dimensionValue" [disabled]="!calculateDimension">
+        <option value="">Dimensjonsverdi</option>
+        <option value="100">100 Hovedkontor</option>
+        <option value="200">200 Salg</option>
+      </select>
+      <label class="check">
+        <input type="checkbox" [(ngModel)]="accumulateDimension">
+        Akkumuler dimensjon
+      </label>
+    </div>
+
+    <label class="check">
+      <input type="checkbox" [(ngModel)]="setDimensionEqualToTotal">
+      Sett dimensjon lik totalverdi
+    </label>
+
+    <label class="section-label reports-label">Rapporter</label>
+    <div class="reports-grid">
+      <div *ngFor="let report of reports; let i = index" class="report-input-group">
+        <span>{{ i + 1 }}</span>
+        <input type="text" [(ngModel)]="reports[i]">
+      </div>
+    </div>
+
+    <label class="section-label">Ref til RR-0002</label>
+    <select class="reference-select" [(ngModel)]="reference">
+      <option *ngFor="let option of referenceOptions" [value]="option">{{ option }}</option>
+    </select>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-save" (click)="onSave()">Lagre</button>
+    <button type="button" class="btn-cancel" (click)="onCancel()">Avbryt</button>
+  </mat-dialog-actions>
+</div>

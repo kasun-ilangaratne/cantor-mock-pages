@@ -1,0 +1,139 @@
+<div class="andre-variabler-page">
+  <header class="app-header">
+    <div class="logo">CANTOR</div>
+    <div class="header-actions">
+      <button type="button" class="icon-btn" [matMenuTriggerFor]="hamburgerMenu" aria-label="Meny">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <button type="button" class="icon-btn" aria-label="Kommentar">
+        <mat-icon>chat_bubble_outline</mat-icon>
+      </button>
+      <button type="button" class="icon-btn" aria-label="Logg ut">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
+  </header>
+
+  <mat-menu #hamburgerMenu="matMenu">
+    <button mat-menu-item (click)="openHamburgerAction('cashflow')">Etabler kontantstrømanalyse</button>
+    <button mat-menu-item (click)="openHamburgerAction('copy')">Kopier til flere firma</button>
+  </mat-menu>
+
+  <div class="context-bar">
+    <span class="company">{{ company }}</span>
+    <label>
+      <mat-icon>calendar_today</mat-icon>
+      <select [(ngModel)]="year">
+        <option *ngFor="let item of years" [ngValue]="item">{{ item }}</option>
+      </select>
+    </label>
+    <select [(ngModel)]="month">
+      <option *ngFor="let item of months; let i = index" [ngValue]="item">{{ monthNames[i] }}</option>
+    </select>
+    <select [(ngModel)]="amountFormat" title="Beløpsformat fra toppbanner">
+      <option *ngFor="let option of amountFormatOptions" [ngValue]="option.value">{{ option.label }}</option>
+    </select>
+  </div>
+
+  <div class="title-bar">
+    <h1>Andre variabler</h1>
+    <p>Generelle, Kontantstrøm, Regnskapsanalyse og Notevariabler deler samme forside. Grafvariabler har egen visning.</p>
+  </div>
+
+  <nav class="category-tabs">
+    <button
+      type="button"
+      *ngFor="let tab of tabs"
+      [class.active]="selectedCategory === tab.id"
+      (click)="selectCategory(tab.id)">
+      {{ tab.label }}
+    </button>
+  </nav>
+
+  <section class="content-card">
+    <div class="flash" *ngIf="flashMessage">{{ flashMessage }}</div>
+
+    <div class="table-toolbar">
+      <div class="range-note">Variabellisten hentes fra API basert på nummerområde.</div>
+      <button type="button" class="add-btn" (click)="openAddDialog()">
+        <span class="plus">+</span>
+        Legg til
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="variables-table">
+        <thead>
+          <tr>
+            <th class="nr-col">Nr</th>
+            <th class="name-col">Navn</th>
+            <th *ngIf="isGrafTab" class="graf-col">Type</th>
+            <th *ngIf="isGrafTab" class="graf-col">Id</th>
+            <th class="year-col">{{ year }}</th>
+            <th class="year-col">{{ priorYear }}</th>
+            <th class="actions-col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let row of visibleVariables"
+            [class.selected]="selectedRowId === row.id"
+            (click)="selectedRowId = row.id">
+            <td class="nr-col">{{ row.nr }}</td>
+            <td class="name-col">
+              <span *ngIf="row.nr === '0102'" class="expand-marker">›</span>
+              {{ row.name }}
+            </td>
+            <td *ngIf="isGrafTab" class="graf-col" (click)="$event.stopPropagation()">
+              <select [(ngModel)]="row.grafType">
+                <option *ngFor="let option of grafTypeOptions" [value]="option">{{ option }}</option>
+              </select>
+            </td>
+            <td *ngIf="isGrafTab" class="graf-col" (click)="$event.stopPropagation()">
+              <select [(ngModel)]="row.grafId">
+                <option *ngFor="let option of grafIdOptions" [value]="option">{{ option }}</option>
+              </select>
+            </td>
+            <td class="year-col" (click)="$event.stopPropagation()">
+              <input
+                *ngIf="isAmountEditable(row)"
+                class="amount-input"
+                type="number"
+                [(ngModel)]="row.yearCurrent">
+              <span *ngIf="!isAmountEditable(row)" class="calculated-amount">{{ formatAmount(row.yearCurrent) }}</span>
+            </td>
+            <td class="year-col" (click)="$event.stopPropagation()">
+              <input
+                *ngIf="isAmountEditable(row)"
+                class="amount-input"
+                type="number"
+                [(ngModel)]="row.yearPrior">
+              <span *ngIf="!isAmountEditable(row)" class="calculated-amount">{{ formatAmount(row.yearPrior) }}</span>
+            </td>
+            <td class="actions-col" (click)="$event.stopPropagation()">
+              <button type="button" class="round-btn" (click)="openFormulaDialog(row)" title="Formel">
+                <mat-icon>filter_alt</mat-icon>
+              </button>
+              <button type="button" class="round-btn" (click)="openEditDialog(row)" title="Rediger variabel">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button type="button" class="round-btn danger" (click)="deleteVariable(row)" title="Slett">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="page-footer">
+      <div class="format-override">
+        <span>Alle beløp i</span>
+        <select [(ngModel)]="amountFormat">
+          <option *ngFor="let option of amountFormatOptions" [ngValue]="option.value">{{ option.label }}</option>
+        </select>
+      </div>
+      <button type="button" class="save-btn" (click)="savePage()">Lagre</button>
+    </div>
+  </section>
+</div>
