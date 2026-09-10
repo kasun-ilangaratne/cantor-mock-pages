@@ -1,0 +1,184 @@
+.detail-dialog {
+  width: 100%;
+  max-width: 1100px;
+  box-sizing: border-box;
+}
+
+.header-fields.graf-fields {
+  grid-template-columns: 90px 1.6fr 110px 160px 110px;
+}
+
+.dialog-title {
+  margin: 0;
+  padding: 20px 24px 12px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.dialog-content {
+  padding: 8px 24px 16px !important;
+  margin: 0 !important;
+}
+
+.header-fields {
+  display: grid;
+  grid-template-columns: 90px 1.6fr 110px 90px 120px;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: #374151;
+
+    &.wide {
+      min-width: 0;
+    }
+  }
+
+  input,
+  select {
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: white;
+    font-size: 13px;
+  }
+
+  input:disabled {
+    background: #eef1f5;
+    color: #6b7280;
+  }
+}
+
+.hint {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.amount-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #dbe0e6;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.amount-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 920px;
+
+  th,
+  td {
+    border: 1px solid #e5e7eb;
+    padding: 6px;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  thead th {
+    background: #eef1f5;
+    font-weight: 600;
+  }
+
+  .radio-col {
+    width: 28px;
+  }
+
+  .name-col {
+    text-align: left;
+    min-width: 180px;
+    white-space: nowrap;
+  }
+
+  tbody tr.active-input {
+    background: #eaf3fb;
+  }
+
+  input[type='number'] {
+    width: 64px;
+    height: 28px;
+    border: 1px solid #d1d5db;
+    border-radius: 3px;
+    text-align: right;
+    padding: 0 4px;
+  }
+
+  input.calculated {
+    background: #dbeaf7;
+    color: #1f2937;
+  }
+
+  .total-cell {
+    font-weight: 600;
+    text-align: right;
+    padding-right: 10px;
+    background: #f8fafc;
+  }
+}
+
+.dimension-box {
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 12px;
+  display: flex;
+  gap: 12px;
+  max-width: 520px;
+
+  legend {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0 6px;
+  }
+
+  select {
+    flex: 1;
+    height: 34px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: white;
+    padding: 0 8px;
+  }
+}
+
+.dialog-actions {
+  padding: 12px 24px 20px !important;
+  margin: 0 !important;
+  gap: 10px;
+}
+
+.btn-save,
+.btn-cancel {
+  min-width: 96px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-save {
+  background: #0f2744;
+  color: white;
+}
+
+.btn-cancel {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+@media (max-width: 1100px) {
+  .detail-dialog {
+    min-width: 0;
+  }
+
+  .header-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+}

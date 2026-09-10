@@ -18,6 +18,7 @@ const routes: Routes = [
   {path: 'share-classes', loadChildren: () => import('./features/share-classes/share-classes.module').then(m => m.ShareClassesModule) },
   { path: 'shares', loadChildren: () => import('./features/shares/shares.module').then(m => m.SharesModule) },
   { path: 'annual-report', loadChildren: () => import('./features/annual-report/annual-report.module').then(m => m.AnnualReportModule) },
+  { path: 'andre-variabler', loadChildren: () => import('./features/andre-variabler/andre-variabler.module').then(m => m.AndreVariablerModule) },
   { path: '', redirectTo: '/consolidated-result-unit', pathMatch: 'full' }
 ];
 

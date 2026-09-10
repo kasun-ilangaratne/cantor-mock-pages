@@ -1,0 +1,120 @@
+<div class="detail-dialog">
+  <h2 mat-dialog-title class="dialog-title">{{ title }}</h2>
+
+  <mat-dialog-content class="dialog-content">
+    <div class="header-fields" [class.graf-fields]="data.isGraf">
+      <label>
+        Nr
+        <input type="text" [ngModel]="draft.nr" disabled>
+      </label>
+      <label class="wide">
+        Navn
+        <input type="text" [(ngModel)]="draft.name">
+      </label>
+      <label>
+        Språk
+        <input type="text" [(ngModel)]="draft.language" placeholder="nb-NO">
+      </label>
+      <label *ngIf="!data.isGraf">
+        Type
+        <select [(ngModel)]="draft.type">
+          <option *ngFor="let option of typeOptions" [value]="option">{{ option }}</option>
+        </select>
+      </label>
+      <label *ngIf="data.isGraf">
+        Type
+        <select [(ngModel)]="draft.grafType">
+          <option *ngFor="let option of grafTypeOptions" [value]="option">{{ option }}</option>
+        </select>
+      </label>
+      <label *ngIf="data.isGraf">
+        Id
+        <select [(ngModel)]="draft.grafId">
+          <option *ngFor="let option of grafIdOptions" [value]="option">{{ option }}</option>
+        </select>
+      </label>
+      <label *ngIf="!data.isGraf">
+        Kons.konto
+        <input type="text" [(ngModel)]="draft.konsKonto">
+      </label>
+    </div>
+
+    <p class="hint" *ngIf="amountsReadOnly">
+      Alle beløp er beregnet. Ingen inndata på beløpsfeltene.
+    </p>
+    <p class="hint" *ngIf="!amountsReadOnly && !data.isGraf">
+      Velg hvilken av de to første linjene som skal brukes til inndata.
+    </p>
+
+    <div class="amount-table-wrap" *ngIf="!data.isGraf">
+      <table class="amount-table">
+        <thead>
+          <tr>
+            <th class="radio-col"></th>
+            <th class="name-col">Kontonavn</th>
+            <th *ngFor="let month of monthKeys">{{ monthLabels[month] }}</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of amountRows" [class.active-input]="isInputLine(row.key)">
+            <td class="radio-col">
+              <input
+                *ngIf="row.radio"
+                type="radio"
+                name="inputLine"
+                [value]="row.radioValue"
+                [(ngModel)]="draft.inputLine">
+            </td>
+            <td class="name-col">{{ row.label }}</td>
+            <td *ngFor="let month of monthKeys">
+              <input
+                type="number"
+                [ngModel]="getAmount(row.key, month)"
+                (ngModelChange)="setAmount(row.key, month, $event)"
+                [readonly]="!canEditCell(row.key)"
+                [class.calculated]="!canEditCell(row.key)">
+            </td>
+            <td class="total-cell">{{ amountRowTotal(row.key) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="amount-table-wrap" *ngIf="data.isGraf">
+      <table class="amount-table">
+        <thead>
+          <tr>
+            <th class="name-col">Kontonavn</th>
+            <th *ngFor="let month of monthKeys">{{ monthLabels[month] }}</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of grafRows">
+            <td class="name-col">{{ row.label }}</td>
+            <td *ngFor="let month of monthKeys">
+              <input type="number" [ngModel]="getGrafAmount(row.key, month)" readonly class="calculated">
+            </td>
+            <td class="total-cell">{{ grafRowTotal(row.key) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <fieldset class="dimension-box">
+      <legend>Dimensjon</legend>
+      <select [(ngModel)]="selectedDimension">
+        <option *ngFor="let option of dimensionOptions" [value]="option">{{ option }}</option>
+      </select>
+      <select [(ngModel)]="selectedDimensionValue">
+        <option *ngFor="let option of dimensionValueOptions" [value]="option">{{ option }}</option>
+      </select>
+    </fieldset>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button type="button" class="btn-save" (click)="onSave()">Lagre</button>
+    <button type="button" class="btn-cancel" (click)="onCancel()">Avbryt</button>
+  </mat-dialog-actions>
+</div>
