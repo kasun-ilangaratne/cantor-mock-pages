@@ -1,0 +1,22 @@
+// Cantor-DS auto-generated form styles.
+:host { display: block; }
+.dfm-form-header { margin: 0 0 0.75rem; h1 { margin: 0; font-size: 1.1rem; } }
+.dfm-canvas {
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
+  * { box-sizing: border-box; }
+  .dfm-label { color: #000; }
+  .dfm-currency--readonly { background: #f6f7fa; color: #555; }
+  .dfm-speed-btn:hover { background: #fff; }
+  .dfm-unsupported { display: flex; align-items: center; }
+  .dfm-tab-btn {
+    background: transparent;
+    border: 0;
+    border-right: 1px solid #d3dae7;
+    padding: 0 12px;
+    font: inherit;
+    cursor: pointer;
+    &.active { background: white; box-shadow: inset 0 -2px 0 #1e3a6e; font-weight: 600; }
+    &:hover:not(.active) { background: rgba(255,255,255,0.5); }
+  }
+  .dfm-grid table th { font-weight: 600; }
+}

@@ -1,0 +1,537 @@
+<div class="fixed-asset-topic">
+  <div class="top-header">
+    <div class="toolbar">
+    </div>
+    <div class="top-right-help">
+      <button type="button" class="next-btn" (click)="goToNextTopic()">Next topic →</button>
+      <div class="overflow-menu top-right-menu" (click)="$event.stopPropagation()">
+        <button type="button" class="overflow-trigger" aria-label="More options" title="More options" (click)="toggleOverflowMenu($event)">⋮</button>
+        <div class="overflow-panel" *ngIf="overflowMenuOpen()">
+          <button type="button" (click)="resetSelectedOverrides(); closeOverflowMenu()" [disabled]="loading() || saving() || !selectedRecord()">Reset overrides</button>
+          <button type="button" (click)="printSelected(); closeOverflowMenu()" [disabled]="!selectedRecord()">Print</button>
+          <button type="button" (click)="exportCurrentType(); closeOverflowMenu()" [disabled]="filteredRecords().length === 0">Export CSV</button>
+          <button type="button" (click)="openGevinstTap(); closeOverflowMenu()" [disabled]="!selectedRecord() || !canOpenGevinstTapSelected()">Gain/Loss</button>
+        </div>
+      </div>
+      <button type="button" class="help-icon-btn" (click)="openGuide()" aria-label="Help" title="Help">?</button>
+    </div>
+  </div>
+
+  <div class="meta">
+    <div class="type-filters">
+      <span class="filter-label">Type filters:</span>
+      <button
+        *ngFor="let type of assetTypes"
+        type="button"
+        class="filter-chip"
+        [class.active]="isTypeFilterActive(type)"
+        (click)="toggleTypeFilter(type)">
+        {{ type }}
+      </button>
+    </div>
+    <span *ngIf="dirty()" class="warn">Unsaved changes</span>
+    <span *ngIf="saving()">Saving...</span>
+    <span *ngIf="saveMessage()" class="ok">{{ saveMessage() }}</span>
+    <span *ngIf="selectedRecord() as selected" class="muted">Row {{ getCurrentRecordIndex() + 1 }} of {{ filteredRecords().length }} ({{ selected.objektId }})</span>
+  </div>
+
+  <p *ngIf="loading()">Loading...</p>
+  <p *ngIf="error()" class="error">{{ error() }}</p>
+
+  <div *ngIf="payload()" class="layout">
+    <section class="card table-card">
+      <div class="section-head">
+        <h4>Fixed Asset rows</h4>
+        <button type="button" class="add-btn" (click)="addRecord()" [disabled]="loading() || saving()">Add new</button>
+      </div>
+      <p *ngIf="filteredRecords().length === 0">No rows for selected filters.</p>
+      <table *ngIf="filteredRecords().length > 0" class="assets-table">
+        <thead>
+          <tr>
+            <th>Object ID</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th class="num">Opening</th>
+            <th class="num">Closing</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let r of filteredRecords()"
+            (click)="selectRecord(r.id)"
+            [class.selected]="selectedId() === r.id">
+            <td>{{ r.objektId }}</td>
+            <td>{{ r.objektBeskrivelse || '-' }}</td>
+            <td>{{ r.avskrType }}</td>
+            <td class="num">{{ r.inngVerdi ?? 0 | number:'1.0-2' }}</td>
+            <td class="num">{{ r.utgVerdi ?? 0 | number:'1.0-2' }}</td>
+            <td>
+              <button type="button" class="icon-btn" (click)="startEditRecord(r.id); $event.stopPropagation()" aria-label="Edit row" title="Edit">
+                ✎
+              </button>
+              <button type="button" class="icon-btn danger-btn" (click)="deleteById(r.id); $event.stopPropagation()" aria-label="Delete row" title="Delete">
+                🗑
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <aside class="detail-drawer" [class.open]="drawerOpen">
+      <div class="drawer-header">
+        <div>
+          <h3>{{ selectedRecord()?.objektBeskrivelse || 'Details' }}</h3>
+          <small>{{ selectedRecord()?.objektId }}</small>
+        </div>
+        <button type="button" class="close-btn" (click)="closeDrawer()">Close</button>
+      </div>
+      <div class="drawer-tabs" *ngIf="selectedRecord()">
+        <button type="button" [class.active]="drawerTab === 'general'" (click)="drawerTab = 'general'">General</button>
+        <button type="button" [class.active]="drawerTab === 'values'" (click)="drawerTab = 'values'">Values</button>
+        <button type="button" [class.active]="drawerTab === 'depreciation'" (click)="drawerTab = 'depreciation'">Depreciation</button>
+        <button type="button" [class.active]="drawerTab === 'extended'" (click)="drawerTab = 'extended'">Extended</button>
+        <button type="button" [class.active]="drawerTab === 'resource-rent'" (click)="drawerTab = 'resource-rent'">Resource Rent</button>
+      </div>
+      <div class="drawer-content" *ngIf="selectedRecord() as selected">
+      <div class="grid" *ngIf="drawerTab === 'general'">
+        <label>Object identifier
+          <input [ngModel]="selected.objektId" (ngModelChange)="updateSelected('objektId', $event)" />
+        </label>
+        <label>Description
+          <input [ngModel]="selected.objektBeskrivelse" (ngModelChange)="updateSelected('objektBeskrivelse', $event)" />
+        </label>
+        <label>Acquisition date
+          <input type="date" [ngModel]="selected.ervervsdato ?? ''" (ngModelChange)="updateSelected('ervervsdato', $event || null)" />
+        </label>
+      </div>
+
+      <div class="grid" *ngIf="drawerTab === 'values'">
+        <label>Opening value
+          <input type="number" [ngModel]="selected.inngVerdi ?? 0" (ngModelChange)="updateNumber('inngVerdi', $event)" />
+        </label>
+        <label>Closing value
+          <input type="number" [ngModel]="selected.utgVerdi ?? 0" (ngModelChange)="updateNumber('utgVerdi', $event)" />
+        </label>
+        <label>Improvement cost
+          <input
+            type="number"
+            [class.overridden]="isFieldOverridden('paakostning')"
+            [ngModel]="selected.paakostning ?? 0"
+            (ngModelChange)="updateNumber('paakostning', $event)" />
+        </label>
+        <label>Proceeds realization/withdrawal
+          <input
+            type="number"
+            [class.overridden]="isFieldOverridden('vederlagRealiOgUttak')"
+            [ngModel]="selected.vederlagRealiOgUttak ?? 0"
+            (ngModelChange)="updateNumber('vederlagRealiOgUttak', $event)" />
+        </label>
+      </div>
+
+      <div class="grid" *ngIf="drawerTab === 'depreciation'">
+        <ng-container [ngSwitch]="selected.avskrType">
+          <ng-container *ngSwitchCase="'SA'">
+            <label>Balance group
+              <select [ngModel]="selected.saSaldogruppe ?? ''" (ngModelChange)="updateSaldogruppe($event)">
+                <option *ngFor="let group of saldogrupper" [value]="group">{{ group }}</option>
+              </select>
+            </label>
+            <label>Depreciation rate
+              <input type="number" [class.overridden]="isFieldOverridden('saSatsAvskr')" [ngModel]="selected.saSatsAvskr ?? 0" (ngModelChange)="updateNumber('saSatsAvskr', $event)" />
+            </label>
+            <label>New acquisition
+              <input type="number" [class.overridden]="isFieldOverridden('saNyanskaffelse')" [ngModel]="selected.saNyanskaffelse ?? 0" (ngModelChange)="updateNumber('saNyanskaffelse', $event)" />
+            </label>
+            <label>Annual depreciation
+              <input type="number" [class.overridden]="isFieldOverridden('saAvskrIA')" [ngModel]="selected.saAvskrIA ?? 0" (ngModelChange)="updateNumber('saAvskrIA', $event)" />
+            </label>
+            <label>Negative balance income recognized this year
+              <input type="number" [class.overridden]="isFieldOverridden('saInntektsfortNegSaldoIA')" [ngModel]="selected.saInntektsfortNegSaldoIA ?? 0" (ngModelChange)="updateNumber('saInntektsfortNegSaldoIA', $event)" />
+            </label>
+            <label class="check"><input type="checkbox" [ngModel]="selected.saErDriftsmIUtgaaendeVerdi ?? true" (ngModelChange)="updateSelected('saErDriftsmIUtgaaendeVerdi', $event)" /> Included in closing balance</label>
+            <label>Written-down value of separated assets
+              <input type="number" [ngModel]="selected.saNedskrAvUtskilteDriftsm ?? 0" (ngModelChange)="updateNumber('saNedskrAvUtskilteDriftsm', $event)" />
+            </label>
+            <label>Taxable business days
+              <input type="number" [ngModel]="selected.saAntallDagerKnyttetTilSkattepliktigVirksomhet ?? 0" (ngModelChange)="updateNumber('saAntallDagerKnyttetTilSkattepliktigVirksomhet', $event)" />
+            </label>
+            <label>1984 historical cost price
+              <input type="number" [ngModel]="selected.sa1984HistoriskKostpris ?? 0" (ngModelChange)="updateNumber('sa1984HistoriskKostpris', $event)" />
+            </label>
+            <label>1984 written-down value
+              <input type="number" [ngModel]="selected.sa1984Nedskrevet ?? 0" (ngModelChange)="updateNumber('sa1984Nedskrevet', $event)" />
+            </label>
+            <label>1984 lower depreciation threshold
+              <input type="number" [ngModel]="selected.sa1984NedreGrenseAvskr ?? 0" (ngModelChange)="updateNumber('sa1984NedreGrenseAvskr', $event)" />
+            </label>
+            <fieldset *ngIf="showSaldogruppeGSection(selected)" class="group-g-section">
+              <legend>Additional details for balance group g</legend>
+              <div class="group-g-actions">
+                <button type="button" class="icon-btn" (click)="addSaldogruppeGRow()" aria-label="Add row" title="Add row">+</button>
+              </div>
+              <table class="table group-g-table">
+                <thead>
+                  <tr>
+                    <th>Municipality number</th>
+                    <th>Electrotechnical equipment</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of selected.saSaldogruppeGRows ?? []">
+                    <td><input [ngModel]="row.kommunenummer" (ngModelChange)="updateSaldogruppeGRow(row.id, 'kommunenummer', ($event ?? '').toString())" /></td>
+                    <td><input type="checkbox" [ngModel]="row.erElektrotekniskUtrustningIKraftforetak" (ngModelChange)="updateSaldogruppeGRow(row.id, 'erElektrotekniskUtrustningIKraftforetak', !!$event)" /></td>
+                    <td><button type="button" class="icon-btn" (click)="removeSaldogruppeGRow(row.id)" aria-label="Delete row" title="Delete row">🗑</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </fieldset>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'LA'">
+            <label>Acquisition cost
+              <input type="number" [ngModel]="selected.laAnskKost ?? 0" (ngModelChange)="updateNumber('laAnskKost', $event)" />
+            </label>
+            <label>Adjustment for obvious value change
+              <input type="number" [ngModel]="selected.laJustertVerdiendring ?? 0" (ngModelChange)="updateNumber('laJustertVerdiendring', $event)" />
+            </label>
+            <label>Lifetime (months)
+              <input type="number" [ngModel]="selected.laLevetid ?? 0" (ngModelChange)="updateNumber('laLevetid', $event)" />
+            </label>
+            <label>Annual depreciation
+              <input type="number" [ngModel]="selected.laAvskrIA ?? 0" (ngModelChange)="updateNumber('laAvskrIA', $event)" />
+            </label>
+            <label>Realization transferred from improvements
+              <input type="number" [ngModel]="selected.laRealisasjonOverfFraPaakost ?? 0" (ngModelChange)="updateNumber('laRealisasjonOverfFraPaakost', $event)" />
+            </label>
+            <label>Realization transferred to asset
+              <input type="number" [ngModel]="selected.laRealisasjonOverfTilDriftsm ?? 0" (ngModelChange)="updateNumber('laRealisasjonOverfTilDriftsm', $event)" />
+            </label>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'IA'">
+            <label>New acquisition
+              <input type="number" [ngModel]="selected.iaNyanskaffelse ?? 0" (ngModelChange)="updateNumber('iaNyanskaffelse', $event)" />
+            </label>
+            <label>Adjustment for obvious value change
+              <input type="number" [ngModel]="selected.iaJusteringVerdiendring ?? 0" (ngModelChange)="updateNumber('iaJusteringVerdiendring', $event)" />
+            </label>
+          </ng-container>
+        </ng-container>
+      </div>
+
+      <div class="grid" *ngIf="drawerTab === 'extended'">
+            <label>Proceeds realization/withdrawal
+              <input type="number" [ngModel]="selected.vederlagRealiOgUttak ?? 0" (ngModelChange)="updateNumber('vederlagRealiOgUttak', $event)" />
+            </label>
+            <label>Realization date
+              <input type="date" [ngModel]="selected.realisasjonsdato ?? ''" (ngModelChange)="updateSelected('realisasjonsdato', $event || null)" />
+            </label>
+            <label>Proceeds recognized this year
+              <input type="number" [ngModel]="selected.vederlagRealiOgUttakIA ?? 0" (ngModelChange)="updateNumber('vederlagRealiOgUttakIA', $event)" />
+            </label>
+            <label class="check"><input type="checkbox" [ngModel]="selected.erRealiUfrivilligOgGevSktfri ?? false" (ngModelChange)="updateSelected('erRealiUfrivilligOgGevSktfri', $event)" /> Involuntary realization with conditional tax-free gain</label>
+            <label>Compensation for involuntary realization
+              <input type="number" [ngModel]="selected.ufrivilligRealiErstatning ?? 0" (ngModelChange)="updateNumber('ufrivilligRealiErstatning', $event)" />
+            </label>
+            <label>Reinvested sales gain
+              <input type="number" [ngModel]="selected.reinvSalgsgev ?? 0" (ngModelChange)="updateNumber('reinvSalgsgev', $event)" />
+            </label>
+            <label>Write-down on new acquisition using sales gain
+              <input type="number" [ngModel]="selected.nedskrNyanskMSalgsgev ?? 0" (ngModelChange)="updateNumber('nedskrNyanskMSalgsgev', $event)" />
+            </label>
+            <label>Object ID for write-down with sales gain
+              <input [ngModel]="selected.objektIdNedskrMSalgsgev ?? ''" (ngModelChange)="updateSelected('objektIdNedskrMSalgsgev', $event)" />
+            </label>
+            <label>Public grant
+              <input type="number" [ngModel]="selected.offTilskudd ?? 0" (ngModelChange)="updateNumber('offTilskudd', $event)" />
+            </label>
+            <label>Input VAT adjustment
+              <input type="number" [ngModel]="selected.justeringInngMva ?? 0" (ngModelChange)="updateNumber('justeringInngMva', $event)" />
+            </label>
+            <label>District investment grant
+              <input type="number" [ngModel]="selected.tilskuddInvestIDistr ?? 0" (ngModelChange)="updateNumber('tilskuddInvestIDistr', $event)" />
+            </label>
+            <label>Reversal of district investment grant
+              <input type="number" [ngModel]="selected.tilbakefTilskuddInvestIDistr ?? 0" (ngModelChange)="updateNumber('tilbakefTilskuddInvestIDistr', $event)" />
+            </label>
+            <label>Basis for depreciation and income recognition
+              <input type="number" [ngModel]="selected.grlAvskrInntektsf ?? 0" (ngModelChange)="updateNumber('grlAvskrInntektsf', $event)" />
+            </label>
+            <label>Gain to gain/loss account
+              <input type="number" [ngModel]="selected.gevTilGevOgTapKonto ?? 0" (ngModelChange)="updateNumber('gevTilGevOgTapKonto', $event)" />
+            </label>
+            <label>Loss to gain/loss account
+              <input type="number" [ngModel]="selected.tapTilGevOgTapKonto ?? 0" (ngModelChange)="updateNumber('tapTilGevOgTapKonto', $event)" />
+            </label>
+            <label>Related linked asset object identifier
+              <input [ngModel]="selected.objektidentifikatorTilhoerendeTilknyttetAnleggsmiddel ?? ''" (ngModelChange)="updateSelected('objektidentifikatorTilhoerendeTilknyttetAnleggsmiddel', $event)" />
+            </label>
+            <label class="check"><input type="checkbox" [ngModel]="selected.ekskluderSM ?? false" (ngModelChange)="updateSelected('ekskluderSM', $event)" /> Exclude from tax return transfer</label>
+      </div>
+
+      <div class="grid" *ngIf="drawerTab === 'resource-rent'">
+            <div class="resource-rent-subtabs">
+              <button
+                type="button"
+                *ngFor="let option of resourceRentSubtypeOptions()"
+                [class.active]="resourceRentSubtype === option.id"
+                (click)="selectResourceRentSubtype(option.id)">
+                {{ option.label }}
+              </button>
+            </div>
+
+            <fieldset *ngIf="resourceRentSubtype === 'vannkraft' && hasSubtype('vannkraft')">
+              <legend>Hydropower plant</legend>
+              <div class="core-fields">
+              <label>Used in resource rent taxable business
+                <select [ngModel]="selected.grunnrente.vkBenyttesIGrunnrentepliktig ?? 'nei'" (ngModelChange)="updateGrunnrente('vkBenyttesIGrunnrentepliktig', $event)">
+                  <option value="nei">No</option>
+                  <option value="delvis">Partly</option>
+                  <option value="ja">Yes</option>
+                </select>
+              </label>
+              <label class="check"><input type="checkbox" [ngModel]="selected.grunnrente.vkErAnleggsmiddelUnderUtfoerelse ?? false" (ngModelChange)="updateGrunnrente('vkErAnleggsmiddelUnderUtfoerelse', $event)" /> Asset under construction</label>
+              <label>Plant serial number
+                <input [ngModel]="selected.grunnrente.vkKraftverketsLoepenummer ?? ''" (ngModelChange)="updateGrunnrente('vkKraftverketsLoepenummer', $event)" />
+              </label>
+              <label>Current year allowance
+                <input type="number" [class.overridden]="isGrunnrenteOverridden('vkAaretsFriinntekt')" [ngModel]="selected.grunnrente.vkAaretsFriinntekt ?? 0" (ngModelChange)="updateGrunnrente('vkAaretsFriinntekt', toNumber($event))" />
+              </label>
+              </div>
+              <details>
+                <summary>Advanced</summary>
+                <div class="advanced-fields">
+              <label>Future replacement costs (present value)
+                <input type="number" [class.overridden]="isGrunnrenteOverridden('vkNaaverdiAvFremtidigeUtskiftningskostnader')" [ngModel]="selected.grunnrente.vkNaaverdiAvFremtidigeUtskiftningskostnader ?? 0" (ngModelChange)="updateGrunnrente('vkNaaverdiAvFremtidigeUtskiftningskostnader', toNumber($event))" />
+              </label>
+              <label>CPI-adjusted investment cost
+                <input type="number" [class.overridden]="isGrunnrenteOverridden('vkKonsumprisindeksjustertInvesteringskostnad')" [ngModel]="selected.grunnrente.vkKonsumprisindeksjustertInvesteringskostnad ?? 0" (ngModelChange)="updateGrunnrente('vkKonsumprisindeksjustertInvesteringskostnad', toNumber($event))" />
+              </label>
+              <label>Remaining useful life
+                <input type="number" [ngModel]="selected.grunnrente.vkGjenstaaendeLevetid ?? 0" (ngModelChange)="updateGrunnrente('vkGjenstaaendeLevetid', toNumber($event))" />
+              </label>
+              <label class="check"><input type="checkbox" [ngModel]="selected.grunnrente.vkInvesteringskostnadDirekteUtgiftsfoert ?? false" (ngModelChange)="updateGrunnrente('vkInvesteringskostnadDirekteUtgiftsfoert', $event)" /> Investment cost directly expensed</label>
+              <label>Portion of yearly investment cost directly expensed
+                <input type="number" [ngModel]="selected.grunnrente.vkDelAvAaretsInvesteringskostnadDirekteUtgiftsfoert ?? 0" (ngModelChange)="updateGrunnrente('vkDelAvAaretsInvesteringskostnadDirekteUtgiftsfoert', toNumber($event))" />
+              </label>
+              <label>Current year gain recognition (directly expensed)
+                <input type="number" [ngModel]="selected.grunnrente.vkAaretsInntektsfoeringAvGevinstDirekteUtgiftsfoert ?? 0" (ngModelChange)="updateGrunnrente('vkAaretsInntektsfoeringAvGevinstDirekteUtgiftsfoert', toNumber($event))" />
+              </label>
+              <label>Gain to gain/loss account (hydropower)
+                <input type="number" [ngModel]="selected.grunnrente.vkGevinstTilGevinstOgTapskonto ?? 0" (ngModelChange)="updateGrunnrente('vkGevinstTilGevinstOgTapskonto', toNumber($event))" />
+              </label>
+              <label>Loss to gain/loss account (hydropower)
+                <input type="number" [ngModel]="selected.grunnrente.vkTapTilGevinstOgTapskonto ?? 0" (ngModelChange)="updateGrunnrente('vkTapTilGevinstOgTapskonto', toNumber($event))" />
+              </label>
+                </div>
+              </details>
+            </fieldset>
+
+            <fieldset *ngIf="resourceRentSubtype === 'landbasertVindkraft' && hasSubtype('landbasertVindkraft')">
+              <legend>Onshore wind power</legend>
+              <div class="core-fields">
+              <label>Used in resource rent taxable business
+                <select [ngModel]="selected.grunnrente.lvBenyttesIGrunnrentepliktig ?? 'nei'" (ngModelChange)="updateGrunnrente('lvBenyttesIGrunnrentepliktig', $event)">
+                  <option value="nei">No</option>
+                  <option value="delvis">Partly</option>
+                  <option value="ja">Yes</option>
+                </select>
+              </label>
+              <label class="check"><input type="checkbox" [ngModel]="selected.grunnrente.lvErAnleggsmiddelUnderUtfoerelse ?? false" (ngModelChange)="updateGrunnrente('lvErAnleggsmiddelUnderUtfoerelse', $event)" /> Asset under construction</label>
+              <label>Plant serial number
+                <input [ngModel]="selected.grunnrente.lvKraftverketsLoepenummer ?? ''" (ngModelChange)="updateGrunnrente('lvKraftverketsLoepenummer', $event)" />
+              </label>
+              <label>Waiting interest
+                <input type="number" [ngModel]="selected.grunnrente.lvVenterente ?? 0" (ngModelChange)="updateGrunnrente('lvVenterente', toNumber($event))" />
+              </label>
+              </div>
+              <details>
+                <summary>Advanced</summary>
+                <div class="advanced-fields">
+              <label>Directly expensed investment cost
+                <input type="number" [ngModel]="selected.grunnrente.lvDirekteUtgiftsfoertInvesteringskostnad ?? 0" (ngModelChange)="updateGrunnrente('lvDirekteUtgiftsfoertInvesteringskostnad', toNumber($event))" />
+              </label>
+              <label>Portion of yearly investment cost directly expensed in prior years
+                <input type="number" [ngModel]="selected.grunnrente.lvDelAvAaretsInvesteringskostnadDirekteUtgiftsfoertTidligereAar ?? 0" (ngModelChange)="updateGrunnrente('lvDelAvAaretsInvesteringskostnadDirekteUtgiftsfoertTidligereAar', toNumber($event))" />
+              </label>
+              <label>Share of current-year acquired assets depreciated
+                <input type="number" [ngModel]="selected.grunnrente.lvAndelAvDriftsmiddelAnskaffetIAaretSomAvskrives ?? 0" (ngModelChange)="updateGrunnrente('lvAndelAvDriftsmiddelAnskaffetIAaretSomAvskrives', toNumber($event))" />
+              </label>
+              <label>Opening value adjusted as of 01.01.2024
+                <input type="number" [ngModel]="selected.grunnrente.lvInngaaendeVerdiOppjustertPr01012024 ?? 0" (ngModelChange)="updateGrunnrente('lvInngaaendeVerdiOppjustertPr01012024', toNumber($event))" />
+              </label>
+              <label>Adjusted depreciation basis as of 01.01.2024
+                <input type="number" [ngModel]="selected.grunnrente.lvOppjustertGrunnlagForAvskrivningPer01012024 ?? 0" (ngModelChange)="updateGrunnrente('lvOppjustertGrunnlagForAvskrivningPer01012024', toNumber($event))" />
+              </label>
+              <label>Depreciation basis for adjusted value as of 01.01.2024
+                <input type="number" [ngModel]="selected.grunnrente.lvGrunnlagForAvskrivningOppjustertPr01012024 ?? 0" (ngModelChange)="updateGrunnrente('lvGrunnlagForAvskrivningOppjustertPr01012024', toNumber($event))" />
+              </label>
+              <label>Balance adjustment
+                <input type="number" [ngModel]="selected.grunnrente.lvJusteringPaaSaldo ?? 0" (ngModelChange)="updateGrunnrente('lvJusteringPaaSaldo', toNumber($event))" />
+              </label>
+              <label>Current year depreciation on adjusted value
+                <input type="number" [ngModel]="selected.grunnrente.lvAaretsAvskrivningOppjustertPr01012024 ?? 0" (ngModelChange)="updateGrunnrente('lvAaretsAvskrivningOppjustertPr01012024', toNumber($event))" />
+              </label>
+              <label>Closing value adjusted value
+                <input type="number" [ngModel]="selected.grunnrente.lvUtgaaendeVerdiOppjustertPr01012024 ?? 0" (ngModelChange)="updateGrunnrente('lvUtgaaendeVerdiOppjustertPr01012024', toNumber($event))" />
+              </label>
+              <label>Opening value acquired after 01.01.2024
+                <input type="number" [ngModel]="selected.grunnrente.lvInngaaendeVerdiAnskaffetEtter01012024 ?? 0" (ngModelChange)="updateGrunnrente('lvInngaaendeVerdiAnskaffetEtter01012024', toNumber($event))" />
+              </label>
+              <label>Depreciation basis acquired after 01.01.2024
+                <input type="number" [ngModel]="selected.grunnrente.lvGrunnlagForAvskrivningAnskaffetEtter01012024 ?? 0" (ngModelChange)="updateGrunnrente('lvGrunnlagForAvskrivningAnskaffetEtter01012024', toNumber($event))" />
+              </label>
+              <label>Current year depreciation for assets acquired after 01.01.2024
+                <input type="number" [ngModel]="selected.grunnrente.lvAaretsAvskrivningAnskaffetEtter01012024 ?? 0" (ngModelChange)="updateGrunnrente('lvAaretsAvskrivningAnskaffetEtter01012024', toNumber($event))" />
+              </label>
+              <label>Closing value for assets acquired after 01.01.2024
+                <input type="number" [ngModel]="selected.grunnrente.lvUtgaaendeVerdiAnskaffetEtter01012024 ?? 0" (ngModelChange)="updateGrunnrente('lvUtgaaendeVerdiAnskaffetEtter01012024', toNumber($event))" />
+              </label>
+              <label>Basis for waiting-interest calculation
+                <input type="number" [ngModel]="selected.grunnrente.lvGrunnlagForBeregningAvVenterente ?? 0" (ngModelChange)="updateGrunnrente('lvGrunnlagForBeregningAvVenterente', toNumber($event))" />
+              </label>
+              <label>Current year gain recognition (directly expensed)
+                <input type="number" [ngModel]="selected.grunnrente.lvAaretsInntektsfoeringGevinstDirekteUtgiftsfoert ?? 0" (ngModelChange)="updateGrunnrente('lvAaretsInntektsfoeringGevinstDirekteUtgiftsfoert', toNumber($event))" />
+              </label>
+              <label>Gain to gain/loss account (wind)
+                <input type="number" [ngModel]="selected.grunnrente.lvGevinstTilGevinstOgTapskonto ?? 0" (ngModelChange)="updateGrunnrente('lvGevinstTilGevinstOgTapskonto', toNumber($event))" />
+              </label>
+              <label>Loss to gain/loss account (wind)
+                <input type="number" [ngModel]="selected.grunnrente.lvTapTilGevinstOgTapskonto ?? 0" (ngModelChange)="updateGrunnrente('lvTapTilGevinstOgTapskonto', toNumber($event))" />
+              </label>
+                </div>
+              </details>
+            </fieldset>
+
+            <fieldset *ngIf="resourceRentSubtype === 'havbruk' && hasSubtype('havbruk')">
+              <legend>Aquaculture</legend>
+              <div class="core-fields">
+              <label>Used in resource rent taxable business
+                <select [ngModel]="selected.grunnrente.hbBenyttesIGrunnrentepliktig ?? 'nei'" (ngModelChange)="updateGrunnrente('hbBenyttesIGrunnrentepliktig', $event)">
+                  <option value="nei">No</option>
+                  <option value="delvis">Partly</option>
+                  <option value="ja">Yes</option>
+                </select>
+              </label>
+              <label class="check"><input type="checkbox" [ngModel]="selected.grunnrente.hbErAnleggsmiddelUnderUtfoerelse ?? false" (ngModelChange)="updateGrunnrente('hbErAnleggsmiddelUnderUtfoerelse', $event)" /> Asset under construction</label>
+              <label>Directly expensed investment cost
+                <input type="number" [ngModel]="selected.grunnrente.hbDirekteUtgiftsfoertInvesteringskostnad ?? 0" (ngModelChange)="updateGrunnrente('hbDirekteUtgiftsfoertInvesteringskostnad', toNumber($event))" />
+              </label>
+              </div>
+              <details>
+                <summary>Advanced</summary>
+                <div class="advanced-fields">
+              <label>Portion of yearly investment cost directly expensed in prior years
+                <input type="number" [ngModel]="selected.grunnrente.hbDelAvAaretsInvesteringskostnadDirekteUtgiftsfoertTidligereAar ?? 0" (ngModelChange)="updateGrunnrente('hbDelAvAaretsInvesteringskostnadDirekteUtgiftsfoertTidligereAar', toNumber($event))" />
+              </label>
+              <label>Tax value carried forward on purchase from related party
+                <input type="number" [ngModel]="selected.grunnrente.hbSkattemessigVerdiViderefoertVedKjoepFraNaerstaaende ?? 0" (ngModelChange)="updateGrunnrente('hbSkattemessigVerdiViderefoertVedKjoepFraNaerstaaende', toNumber($event))" />
+              </label>
+              <label>Current year ordinary depreciation
+                <input type="number" [ngModel]="selected.grunnrente.hbAaretsAvskrivningOrdinaer ?? 0" (ngModelChange)="updateGrunnrente('hbAaretsAvskrivningOrdinaer', toNumber($event))" />
+              </label>
+              <label>Current year depreciation for partial aquaculture
+                <input type="number" [ngModel]="selected.grunnrente.hbAaretsAvskrivningDelvisHavbruk ?? 0" (ngModelChange)="updateGrunnrente('hbAaretsAvskrivningDelvisHavbruk', toNumber($event))" />
+              </label>
+              <label>Current year gain recognition on realization
+                <input type="number" [ngModel]="selected.grunnrente.hbAaretsInntektsfoeringGevinstRealisasjon ?? 0" (ngModelChange)="updateGrunnrente('hbAaretsInntektsfoeringGevinstRealisasjon', toNumber($event))" />
+              </label>
+              <label>Current year gain recognition on withdrawal
+                <input type="number" [ngModel]="selected.grunnrente.hbAaretsInntektsfoeringGevinstUttak ?? 0" (ngModelChange)="updateGrunnrente('hbAaretsInntektsfoeringGevinstUttak', toNumber($event))" />
+              </label>
+              <label>Gain on realization to gain/loss account
+                <input type="number" [ngModel]="selected.grunnrente.hbGevinstRealisasjonTilGevinstOgTapskonto ?? 0" (ngModelChange)="updateGrunnrente('hbGevinstRealisasjonTilGevinstOgTapskonto', toNumber($event))" />
+              </label>
+              <label>Gain on withdrawal to gain/loss account
+                <input type="number" [ngModel]="selected.grunnrente.hbGevinstUttakTilGevinstOgTapskonto ?? 0" (ngModelChange)="updateGrunnrente('hbGevinstUttakTilGevinstOgTapskonto', toNumber($event))" />
+              </label>
+              <label>Loss on realization to gain/loss account
+                <input type="number" [ngModel]="selected.grunnrente.hbTapRealisasjonTilGevinstOgTapskonto ?? 0" (ngModelChange)="updateGrunnrente('hbTapRealisasjonTilGevinstOgTapskonto', toNumber($event))" />
+              </label>
+              <label>Loss on withdrawal to gain/loss account
+                <input type="number" [ngModel]="selected.grunnrente.hbTapUttakTilGevinstOgTapskonto ?? 0" (ngModelChange)="updateGrunnrente('hbTapUttakTilGevinstOgTapskonto', toNumber($event))" />
+              </label>
+                </div>
+              </details>
+            </fieldset>
+
+            <fieldset *ngIf="resourceRentSubtype === 'petroleum' && hasSubtype('petroleum')">
+              <legend>Petroleum</legend>
+              <label class="check"><input type="checkbox" [ngModel]="selected.grunnrente.gjelderVirksomhetPaaSokkel ?? false" (ngModelChange)="updateGrunnrente('gjelderVirksomhetPaaSokkel', $event)" /> Applies to offshore activity</label>
+            </fieldset>
+      </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="gain-loss-modal" *ngIf="gainLossOpen">
+    <div class="gain-loss-backdrop" (click)="closeGainLoss()"></div>
+    <section class="gain-loss-panel">
+      <div class="gain-loss-header">
+        <h3>Gain/Loss</h3>
+        <div class="toolbar">
+          <button type="button" (click)="addGainLossRow()">Add</button>
+          <button type="button" (click)="deleteGainLossSelected()" [disabled]="!gainLossSelectedId()">Delete</button>
+          <button type="button" class="close-btn" (click)="closeGainLoss()">Close</button>
+        </div>
+      </div>
+      <div class="gain-loss-layout">
+        <div class="table-wrap">
+          <table class="assets-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Business</th>
+                <th>Municipality</th>
+                <th class="num">IB</th>
+                <th class="num">Gain/Loss year</th>
+                <th class="num">Income/Deduction</th>
+                <th class="num">UB</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of gainLossRows()" [class.selected]="gainLossSelectedId() === row.id" (click)="selectGainLossRow(row.id)">
+                <td>{{ row.gevTapId }}</td>
+                <td>{{ row.naeringId || '-' }}</td>
+                <td>{{ row.kommuneNr || '-' }}</td>
+                <td class="num">{{ row.ibVerdi | number:'1.0-0' }}</td>
+                <td class="num">{{ row.gevTapIA | number:'1.0-0' }}</td>
+                <td class="num">{{ row.inntFradrIA | number:'1.0-0' }}</td>
+                <td class="num">{{ row.ubVerdi | number:'1.0-0' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card" *ngIf="gainLossDraft() as draft">
+          <div class="grid">
+            <label>Gain/Loss ID <input [ngModel]="draft.gevTapId" (ngModelChange)="updateGainLossDraft('gevTapId', $event)" /></label>
+            <label>Business ID <input [ngModel]="draft.naeringId" (ngModelChange)="updateGainLossDraft('naeringId', $event)" /></label>
+            <label>Municipality <input [ngModel]="draft.kommuneNr" (ngModelChange)="updateGainLossDraft('kommuneNr', $event)" /></label>
+            <label>IB value <input type="number" [ngModel]="draft.ibVerdi" (ngModelChange)="updateGainLossDraft('ibVerdi', toNumber($event))" /></label>
+            <label>Gain/Loss this year <input type="number" [ngModel]="draft.gevTapIA" (ngModelChange)="updateGainLossDraft('gevTapIA', toNumber($event))" /></label>
+            <label>Gain ending business <input type="number" [ngModel]="draft.gevVOpphDriftsgren" (ngModelChange)="updateGainLossDraft('gevVOpphDriftsgren', toNumber($event))" /></label>
+            <label>Acquired gain/loss IB <input type="number" [ngModel]="draft.ervervetGevTapIB" (ngModelChange)="updateGainLossDraft('ervervetGevTapIB', toNumber($event))" /></label>
+            <label>Realized gain/loss value <input type="number" [ngModel]="draft.verdiRealisertGevTap" (ngModelChange)="updateGainLossDraft('verdiRealisertGevTap', toNumber($event))" /></label>
+            <label>Rate (%) <input type="number" [ngModel]="draft.sats" (ngModelChange)="updateGainLossDraft('sats', toNumber($event))" /></label>
+            <label>Basis <input type="number" [ngModel]="draft.grunnlag" readonly /></label>
+            <label>Income/Deduction year <input type="number" [ngModel]="draft.inntFradrIA" readonly /></label>
+            <label>UB value <input type="number" [ngModel]="draft.ubVerdi" readonly /></label>
+            <label class="check"><input type="checkbox" [ngModel]="draft.realFraTomtJordSkog" (ngModelChange)="updateGainLossDraft('realFraTomtJordSkog', !!$event)" /> Sale from land/forest</label>
+            <label class="check"><input type="checkbox" [ngModel]="draft.gevFraGaardJordSkog" (ngModelChange)="updateGainLossDraft('gevFraGaardJordSkog', !!$event)" /> Gain from farm/forest</label>
+          </div>
+          <div class="drawer-footer">
+            <button type="button" (click)="saveGainLossDraft()">Save row</button>
+          </div>
+        </div>
+      </div>
+      <p class="muted" *ngIf="gainLossMessage()">{{ gainLossMessage() }}</p>
+    </section>
+  </div>
+
+  <div class="bottom-actions">
+    <button type="button" class="save-btn" (click)="save()" [disabled]="loading() || saving() || !dirty()">Save</button>
+  </div>
+</div>
