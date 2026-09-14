@@ -1,7 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import {
+  CompanyOption,
+  CompanyPickerDialogComponent
+} from '../company-picker-dialog/company-picker-dialog.component';
 
 @Component({
   selector: 'app-copy-setup-dialog',
@@ -12,8 +16,7 @@ import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 })
 export class CopySetupDialogComponent {
   copyMode: 'add' | 'replace' = 'add';
-  selectedCompanies: string[] = ['Nordlys Drift AS'];
-  companyOptions = ['Nordlys Drift AS', 'Fjord Kapital AS', 'Havn Holding AS', 'Alpin Eiendom AS'];
+  selectedCompanies: CompanyOption[] = [];
   variables = {
     generelle: false,
     kontantstrom: false,
@@ -22,22 +25,33 @@ export class CopySetupDialogComponent {
     notevariabler: false
   };
 
-  constructor(private dialogRef: MatDialogRef<CopySetupDialogComponent>) {}
+  constructor(
+    private dialogRef: MatDialogRef<CopySetupDialogComponent>,
+    private dialog: MatDialog
+  ) {}
 
-  toggleCompany(company: string, checked: boolean): void {
-    if (checked && !this.selectedCompanies.includes(company)) {
-      this.selectedCompanies.push(company);
-      return;
-    }
-    this.selectedCompanies = this.selectedCompanies.filter((item) => item !== company);
+  removeCompany(nr: number): void {
+    this.selectedCompanies = this.selectedCompanies.filter((item) => item.nr !== nr);
   }
 
-  isSelected(company: string): boolean {
-    return this.selectedCompanies.includes(company);
-  }
-
-  selectAllCompanies(): void {
-    this.selectedCompanies = this.companyOptions.slice();
+  openCompanyPicker(): void {
+    this.dialogRef.addPanelClass('copy-dialog-hidden');
+    this.dialog.open(CompanyPickerDialogComponent, {
+      width: '460px',
+      maxWidth: '95vw',
+      autoFocus: false,
+      panelClass: 'company-picker-overlay',
+      backdropClass: 'company-picker-backdrop',
+      data: {
+        selectedNumbers: this.selectedCompanies.map((item) => item.nr)
+      }
+    }).afterClosed().subscribe((result) => {
+      this.dialogRef.removePanelClass('copy-dialog-hidden');
+      if (!result?.confirmed) {
+        return;
+      }
+      this.selectedCompanies = result.companies ?? [];
+    });
   }
 
   onApply(): void {
@@ -45,7 +59,7 @@ export class CopySetupDialogComponent {
       applied: true,
       copyMode: this.copyMode,
       variables: { ...this.variables },
-      companies: [...this.selectedCompanies]
+      companies: this.selectedCompanies.map((item) => item.name)
     });
   }
 
