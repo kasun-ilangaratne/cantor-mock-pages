@@ -6,6 +6,18 @@
   overflow: hidden;
 }
 
+.cdk-overlay-pane.copy-dialog-hidden {
+  visibility: hidden;
+}
+
+.cdk-overlay-pane.company-picker-overlay {
+  z-index: 3000 !important;
+}
+
+.cdk-overlay-backdrop.company-picker-backdrop {
+  z-index: 2999 !important;
+}
+
 .variable-detail-dialog-panel .mat-mdc-dialog-content,
 .variable-detail-dialog-panel .mat-dialog-content {
   max-height: 70vh;

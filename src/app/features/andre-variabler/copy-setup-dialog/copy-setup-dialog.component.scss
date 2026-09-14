@@ -53,6 +53,30 @@
   overflow: auto;
 }
 
+.selected-company {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  padding: 4px 0;
+}
+
+.remove-btn {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.empty-companies {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
 .company-action {
   display: flex;
   justify-content: flex-end;

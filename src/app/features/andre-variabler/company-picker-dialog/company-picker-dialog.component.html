@@ -1,0 +1,63 @@
+<div class="company-picker">
+  <h2 mat-dialog-title class="dialog-title">Til flere firma</h2>
+
+  <mat-dialog-content class="dialog-content">
+    <label class="type-filter">
+      <select [(ngModel)]="typeFilter">
+        <option value="">Type</option>
+        <option *ngFor="let option of typeOptions" [value]="option">{{ option }}</option>
+      </select>
+    </label>
+
+    <div class="table-wrap">
+      <table class="company-table">
+        <thead>
+          <tr>
+            <th class="check-col">
+              <input
+                type="checkbox"
+                [checked]="allVisibleSelected"
+                (change)="toggleAllVisible($any($event.target).checked)">
+            </th>
+            <th class="nr-col">
+              <button type="button" class="sort-btn" (click)="toggleSort('nr')">
+                Nr.
+                <span class="sort-icon">{{ sortKey === 'nr' && sortDir === 'desc' ? '▾' : '▴' }}</span>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-btn" (click)="toggleSort('name')">
+                Firma
+                <span class="sort-icon">{{ sortKey === 'name' && sortDir === 'desc' ? '▾' : '▴' }}</span>
+              </button>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let company of visibleCompanies" [class.selected]="isSelected(company.nr)">
+            <td class="check-col">
+              <input
+                type="checkbox"
+                [checked]="isSelected(company.nr)"
+                (change)="toggleCompany(company.nr, $any($event.target).checked)">
+            </td>
+            <td class="nr-col">{{ company.nr }}</td>
+            <td>{{ company.name }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <label class="marked-toggle">
+      <input type="checkbox" [(ngModel)]="showSelectedOnly">
+      <span class="switch" [class.on]="showSelectedOnly"></span>
+      Vis kun merkede
+    </label>
+    <div class="action-buttons">
+      <button type="button" class="btn-ok" (click)="onOk()">OK</button>
+      <button type="button" class="btn-cancel" (click)="onCancel()">Avbryt</button>
+    </div>
+  </mat-dialog-actions>
+</div>

@@ -2,7 +2,7 @@
   <header class="app-header">
     <div class="logo">CANTOR</div>
     <div class="header-actions">
-      <button type="button" class="icon-btn" [matMenuTriggerFor]="hamburgerMenu" aria-label="Meny">
+      <button type="button" class="icon-btn" aria-label="Meny">
         <mat-icon>menu</mat-icon>
       </button>
       <button type="button" class="icon-btn" aria-label="Kommentar">
@@ -36,8 +36,17 @@
   </div>
 
   <div class="title-bar">
-    <h1>Andre variabler</h1>
-    <p>Generelle, Kontantstrøm, Regnskapsanalyse og Notevariabler deler samme forside. Grafvariabler har egen visning.</p>
+    <div class="title-text">
+      <h1>Andre variabler</h1>
+      <p>Generelle, Kontantstrøm, Regnskapsanalyse og Notevariabler deler samme forside. Grafvariabler har egen visning.</p>
+    </div>
+    <button
+      type="button"
+      class="page-menu-btn"
+      [matMenuTriggerFor]="hamburgerMenu"
+      aria-label="Sideny">
+      <mat-icon>more_vert</mat-icon>
+    </button>
   </div>
 
   <nav class="category-tabs">

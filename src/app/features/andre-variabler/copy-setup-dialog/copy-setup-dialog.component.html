@@ -19,17 +19,15 @@
     </div>
 
     <p class="instruction">Velg hvilke firma det skal kopieres til her:</p>
-    <div class="company-list">
-      <label *ngFor="let company of companyOptions">
-        <input
-          type="checkbox"
-          [checked]="isSelected(company)"
-          (change)="toggleCompany(company, $any($event.target).checked)">
-        {{ company }}
-      </label>
+    <div class="company-list" *ngIf="selectedCompanies.length">
+      <div class="selected-company" *ngFor="let company of selectedCompanies">
+        <span>{{ company.nr }} {{ company.name }}</span>
+        <button type="button" class="remove-btn" (click)="removeCompany(company.nr)" aria-label="Fjern firma">×</button>
+      </div>
     </div>
+    <p class="empty-companies" *ngIf="!selectedCompanies.length">Ingen firma valgt.</p>
     <div class="company-action">
-      <button type="button" class="btn-save" (click)="selectAllCompanies()">Til flere firma</button>
+      <button type="button" class="btn-save" (click)="openCompanyPicker()">Til flere firma</button>
     </div>
   </mat-dialog-content>
 
